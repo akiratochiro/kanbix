@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "main": "dist/server.js",
-  "scripts": {
-    "dev": "dotenv -e ../../.env -- tsx watch src/server.ts",
-    "prisma:generate": "dotenv -e ../../.env -- prisma generate",
-    "prisma:migrate": "dotenv -e ../../.env -- prisma migrate dev",
-    "prisma:studio": "dotenv -e ../../.env -- prisma studio",
-    "test": "jest"
-  },
+"scripts": {
+  "dev": "dotenv -e ../../.env -- tsx watch src/server.ts",
+  "prisma:generate": "dotenv -e ../../.env -- prisma generate",
+  "prisma:migrate": "dotenv -e ../../.env -- prisma migrate dev",
+  "prisma:studio": "dotenv -e ../../.env -- prisma studio",
+  "prisma:migrate:test": "dotenv -e ../../.env.test -- prisma migrate deploy",
+  "test": "jest --config jest.config.js",
+  "test:integration": "dotenv -e ../../.env.test -- jest --config jest.integration.config.js"
+},
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",

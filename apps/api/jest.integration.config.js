@@ -2,7 +2,6 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
-  testMatch: ["**/src/tests/**/*.test.ts"],
-  testPathIgnorePatterns: ["\\.integration\\.test\\.ts$"],
+  testMatch: ["**/src/tests/**/*.integration.test.ts"],
   clearMocks: true,
 };
