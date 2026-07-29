@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kanbix-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kanbix
+      POSTGRES_PASSWORD: kanbix_dev_password
+      POSTGRES_DB: kanbix
+    ports:
+      - "5434:5432"
+    volumes:
+      - kanbix_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  kanbix_postgres_data:
