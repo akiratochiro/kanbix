@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { userService } from "../services/user.service";
 import type { CreateUserInput } from "../schemas/user.schema";
+import type { LoginInput } from "../schemas/login.schema";
 
 export const userController = {
   async create(
@@ -15,4 +16,17 @@ export const userController = {
       next(error);
     }
   },
-};  
+
+  async login(
+    req: Request<unknown, unknown, LoginInput>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const result = await userService.login(req.body);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+};
