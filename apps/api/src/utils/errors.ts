@@ -13,3 +13,10 @@ export class EmailAlreadyInUseError extends AppError {
     super(`O e-mail "${email}" já está em uso.`, 409);
   }
 }
+
+
+export class InvalidCredentialsError extends AppError {
+  constructor() {
+    super("E-mail ou senha inválidos.", 401);
+  }
+}
