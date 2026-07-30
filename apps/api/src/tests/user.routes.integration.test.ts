@@ -60,3 +60,49 @@ describe("POST /api/users", () => {
     expect(response.body.message).toContain("já está em uso");
   });
 });
+
+describe("POST /api/login", () => {
+  beforeEach(async () => {
+    await request(app).post("/api/users").send({
+      name: "Maria Silva",
+      email: "maria@example.com",
+      password: "senha12345",
+    });
+  });
+
+  it("deve retornar 200 com o usuário e um token quando as credenciais são válidas", async () => {
+    const response = await request(app).post("/api/login").send({
+      email: "maria@example.com",
+      password: "senha12345",
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.user).toMatchObject({
+      name: "Maria Silva",
+      email: "maria@example.com",
+    });
+    expect(typeof response.body.token).toBe("string");
+    expect(response.body.token.split(".")).toHaveLength(3);
+  });
+
+  it("deve retornar 401 quando o e-mail não existe", async () => {
+    const response = await request(app).post("/api/login").send({
+      email: "naoexiste@example.com",
+      password: "qualquersenha",
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.body.message).toBe("E-mail ou senha inválidos.");
+  });
+
+  it("deve retornar 401 quando a senha está incorreta", async () => {
+    const response = await request(app).post("/api/login").send({
+      email: "maria@example.com",
+      password: "senha-errada",
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.body.message).toBe("E-mail ou senha inválidos.");
+  });
+});
+
