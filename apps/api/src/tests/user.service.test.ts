@@ -2,6 +2,7 @@ import { userService } from "../services/user.service";
 import { userRepository } from "../repositories/user.repository";
 import { EmailAlreadyInUseError } from "../utils/errors";
 
+
 jest.mock("../repositories/user.repository");
 jest.mock("bcrypt", () => ({
   hash: jest.fn().mockResolvedValue("hashed_password_mock"),
@@ -160,5 +161,45 @@ describe("userService.login", () => {
     ).rejects.toThrow(InvalidCredentialsError);
 
     expect(generateToken).not.toHaveBeenCalled();
+  });
+});
+
+import { UserNotFoundError } from "../utils/errors";
+
+describe("userService.getUserById", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("deve retornar o DTO do usuário quando ele existe", async () => {
+    mockedUserRepository.findById.mockResolvedValue({
+      id: "uuid-fake",
+      name: "Maria Silva",
+      email: "maria@example.com",
+      passwordHash: "hashed_password_mock",
+      avatarUrl: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const result = await userService.getUserById("uuid-fake");
+
+    expect(result).toEqual({
+      id: "uuid-fake",
+      name: "Maria Silva",
+      email: "maria@example.com",
+      avatarUrl: null,
+      createdAt: expect.any(String),
+    });
+    expect(result).not.toHaveProperty("passwordHash");
+    expect(mockedUserRepository.findById).toHaveBeenCalledWith("uuid-fake");
+  });
+
+  it("deve lançar UserNotFoundError quando o usuário não existe", async () => {
+    mockedUserRepository.findById.mockResolvedValue(null);
+
+    await expect(userService.getUserById("uuid-inexistente")).rejects.toThrow(
+      UserNotFoundError
+    );
   });
 });

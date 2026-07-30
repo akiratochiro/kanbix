@@ -2,15 +2,15 @@ import request from "supertest";
 import { app } from "../app";
 import { prisma } from "../config/prisma";
 
+afterEach(async () => {
+  await prisma.user.deleteMany();
+});
+
+afterAll(async () => {
+  await prisma.$disconnect();
+});
+
 describe("POST /api/users", () => {
-  afterEach(async () => {
-    await prisma.user.deleteMany();
-  });
-
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
-
   it("deve cadastrar um usuário e retornar 201 com o DTO, sem a senha", async () => {
     const response = await request(app).post("/api/users").send({
       name: "Maria Silva",
@@ -37,9 +37,7 @@ describe("POST /api/users", () => {
 
     expect(response.status).toBe(400);
     expect(response.body.errors).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ field: "email" }),
-      ])
+      expect.arrayContaining([expect.objectContaining({ field: "email" })]),
     );
   });
 
@@ -106,3 +104,50 @@ describe("POST /api/login", () => {
   });
 });
 
+describe("GET /api/me", () => {
+  async function createAndLoginUser() {
+    await request(app).post("/api/users").send({
+      name: "Maria Silva",
+      email: "maria@example.com",
+      password: "senha12345",
+    });
+
+    const loginResponse = await request(app).post("/api/login").send({
+      email: "maria@example.com",
+      password: "senha12345",
+    });
+
+    return loginResponse.body.token as string;
+  }
+
+  it("deve retornar 200 com os dados do usuário quando o token é válido", async () => {
+    const token = await createAndLoginUser();
+
+    const response = await request(app)
+      .get("/api/me")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      name: "Maria Silva",
+      email: "maria@example.com",
+    });
+    expect(response.body).not.toHaveProperty("passwordHash");
+  });
+
+  it("deve retornar 401 quando nenhum token é informado", async () => {
+    const response = await request(app).get("/api/me");
+
+    expect(response.status).toBe(401);
+    expect(response.body.message).toBe("Token de autenticação não informado.");
+  });
+
+  it("deve retornar 401 quando o token é inválido", async () => {
+    const response = await request(app)
+      .get("/api/me")
+      .set("Authorization", "Bearer token-invalido-qualquer");
+
+    expect(response.status).toBe(401);
+    expect(response.body.message).toBe("Token inválido ou expirado.");
+  });
+});
