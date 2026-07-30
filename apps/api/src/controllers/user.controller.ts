@@ -29,4 +29,13 @@ export const userController = {
       next(error);
     }
   },
+
+  async me(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const user = await userService.getUserById(req.userId!);
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+},
 };

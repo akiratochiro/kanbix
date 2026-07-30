@@ -3,6 +3,7 @@ import { userRepository } from "../repositories/user.repository";
 import {
   EmailAlreadyInUseError,
   InvalidCredentialsError,
+  UserNotFoundError,
 } from "../utils/errors";
 import { generateToken } from "../utils/jwt";
 import type { User } from "@kanbix/shared-types";
@@ -80,5 +81,15 @@ export const userService = {
       user: toDTO(existingUser),
       token,
     };
+  },
+
+   async getUserById(userId: string): Promise<User> {
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      throw new UserNotFoundError();
+    }
+
+    return toDTO(user);
   },
 };

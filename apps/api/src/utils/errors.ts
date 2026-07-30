@@ -20,3 +20,21 @@ export class InvalidCredentialsError extends AppError {
     super("E-mail ou senha inválidos.", 401);
   }
 }
+
+export class InvalidTokenError extends AppError {
+  constructor() {
+    super("Token inválido ou expirado.", 401);
+  }
+}
+
+export class MissingTokenError extends AppError {
+  constructor() {
+    super("Token de autenticação não informado.", 401);
+  }
+}
+
+export class UserNotFoundError extends AppError {
+  constructor() {
+    super("Usuário não encontrado.", 404);
+  }
+}
