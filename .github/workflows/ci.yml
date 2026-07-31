@@ -39,13 +39,15 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-
       - name: Instalar dependências
         run: npm ci
 
+      - name: Gerar Prisma Client
+        run: npm run prisma:generate --workspace=apps/api
+
       - name: Verificar tipos TypeScript (API)
         run: npx tsc --noEmit --project apps/api/tsconfig.json
-
+     
       - name: Rodar testes unitários
         run: npm run test --workspace=apps/api
 
