@@ -38,3 +38,15 @@ export class UserNotFoundError extends AppError {
     super("Usuário não encontrado.", 404);
   }
 }
+
+export class WorkspaceNotFoundError extends AppError {
+  constructor() {
+    super("Workspace não encontrado.", 404);
+  }
+}
+
+export class InsufficientPermissionError extends AppError {
+  constructor() {
+    super("Você não tem permissão suficiente para esta ação.", 403);
+  }
+}
