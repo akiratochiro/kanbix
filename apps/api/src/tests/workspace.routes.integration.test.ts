@@ -106,3 +106,72 @@ describe("POST /api/workspaces", () => {
     expect(membership).not.toBeNull();
   });
 });
+
+describe("GET /api/workspaces", () => {
+  it("deve retornar os workspaces do usuário logado, com o role de cada um", async () => {
+    const { token } = await createAuthenticatedUser();
+
+    await request(app)
+      .post("/api/workspaces")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Workspace 1" });
+
+    await request(app)
+      .post("/api/workspaces")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Workspace 2" });
+
+    const response = await request(app)
+      .get("/api/workspaces")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
+    expect(response.body[0]).toMatchObject({ role: "OWNER" });
+    expect(response.body[1]).toMatchObject({ role: "OWNER" });
+  });
+
+  it("deve retornar uma lista vazia quando o usuário não pertence a nenhum workspace", async () => {
+    const { token } = await createAuthenticatedUser();
+
+    const response = await request(app)
+      .get("/api/workspaces")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+  });
+
+  it("deve retornar 401 quando nenhum token é informado", async () => {
+    const response = await request(app).get("/api/workspaces");
+
+    expect(response.status).toBe(401);
+  });
+
+  it("não deve retornar workspaces de outros usuários", async () => {
+    const userA = await createAuthenticatedUser();
+
+    await request(app)
+      .post("/api/workspaces")
+      .set("Authorization", `Bearer ${userA.token}`)
+      .send({ name: "Workspace do usuário A" });
+
+    await request(app).post("/api/users").send({
+      name: "Outro Usuário",
+      email: "outro@example.com",
+      password: "senha12345",
+    });
+    const loginB = await request(app).post("/api/login").send({
+      email: "outro@example.com",
+      password: "senha12345",
+    });
+    const tokenB = loginB.body.token;
+
+    const response = await request(app)
+      .get("/api/workspaces")
+      .set("Authorization", `Bearer ${tokenB}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+  });
+});
