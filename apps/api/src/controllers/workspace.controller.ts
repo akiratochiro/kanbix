@@ -18,4 +18,14 @@ export const workspaceController = {
       next(error);
     }
   },
+
+  async list(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const workspaces = await workspaceService.getWorkspacesByUserId(req.userId!);
+    res.status(200).json(workspaces);
+  } catch (error) {
+    next(error);
+  }
+},
+
 };

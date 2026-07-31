@@ -40,4 +40,12 @@ export const workspaceRepository = {
       },
     });
   },
+
+  async findManyByUserId(userId: string) {
+    return prisma.workspaceMember.findMany({
+      where: { userId },
+      include: { workspace: true },
+      orderBy: { workspace: { createdAt: "desc" } },
+    });
+  },
 };

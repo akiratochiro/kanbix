@@ -12,3 +12,5 @@ workspaceRoutes.post(
   validate(createWorkspaceSchema),
   workspaceController.create
 );
+
+workspaceRoutes.get("/workspaces", authenticate, workspaceController.list);

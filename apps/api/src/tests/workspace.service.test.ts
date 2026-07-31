@@ -56,3 +56,71 @@ describe("workspaceService.createWorkspace", () => {
     expect(result.description).toBeNull();
   });
 });
+
+import type { WorkspaceRole } from "@prisma/client";
+
+describe("workspaceService.getWorkspacesByUserId", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("deve retornar os workspaces do usuário, com o papel de cada um", async () => {
+    mockedWorkspaceRepository.findManyByUserId.mockResolvedValue([
+      {
+        id: "membership-1",
+        role: "OWNER" as WorkspaceRole,
+        createdAt: new Date(),
+        userId: "user-uuid",
+        workspaceId: "workspace-1",
+        workspace: {
+          id: "workspace-1",
+          name: "Workspace do João",
+          description: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      },
+      {
+        id: "membership-2",
+        role: "MEMBER" as WorkspaceRole,
+        createdAt: new Date(),
+        userId: "user-uuid",
+        workspaceId: "workspace-2",
+        workspace: {
+          id: "workspace-2",
+          name: "Workspace da Maria",
+          description: "Projetos da Maria",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      },
+    ]);
+
+    const result = await workspaceService.getWorkspacesByUserId("user-uuid");
+
+    expect(result).toEqual([
+      {
+        id: "workspace-1",
+        name: "Workspace do João",
+        description: null,
+        createdAt: expect.any(String),
+        role: "OWNER",
+      },
+      {
+        id: "workspace-2",
+        name: "Workspace da Maria",
+        description: "Projetos da Maria",
+        createdAt: expect.any(String),
+        role: "MEMBER",
+      },
+    ]);
+  });
+
+  it("deve retornar uma lista vazia quando o usuário não é membro de nenhum workspace", async () => {
+    mockedWorkspaceRepository.findManyByUserId.mockResolvedValue([]);
+
+    const result = await workspaceService.getWorkspacesByUserId("user-uuid");
+
+    expect(result).toEqual([]);
+  });
+});

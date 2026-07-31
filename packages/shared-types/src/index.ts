@@ -12,3 +12,7 @@ export interface Workspace {
   description: string | null;
   createdAt: string;
 }
+
+export interface WorkspaceWithRole extends Workspace {
+  role: "OWNER" | "ADMIN" | "MEMBER";
+}
