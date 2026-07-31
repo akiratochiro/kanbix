@@ -35,4 +35,12 @@ export const workspaceService = {
       role: membership.role,
     }));
   },
+
+  async updateWorkspace(
+    workspaceId: string,
+    data: { name?: string; description?: string },
+  ): Promise<Workspace> {
+    const workspace = await workspaceRepository.update(workspaceId, data);
+    return toDTO(workspace);
+  },
 };

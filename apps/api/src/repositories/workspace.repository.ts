@@ -48,4 +48,11 @@ export const workspaceRepository = {
       orderBy: { workspace: { createdAt: "desc" } },
     });
   },
+
+  async update(id: string, data: { name?: string; description?: string }): Promise<PrismaWorkspace> {
+  return prisma.workspace.update({
+    where: { id },
+    data,
+  });
+},
 };

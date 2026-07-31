@@ -124,3 +124,28 @@ describe("workspaceService.getWorkspacesByUserId", () => {
     expect(result).toEqual([]);
   });
 });
+
+describe("workspaceService.updateWorkspace", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("deve atualizar o workspace e retornar o DTO atualizado", async () => {
+    mockedWorkspaceRepository.update.mockResolvedValue({
+      id: "workspace-uuid",
+      name: "Nome Atualizado",
+      description: "Descrição antiga",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const result = await workspaceService.updateWorkspace("workspace-uuid", {
+      name: "Nome Atualizado",
+    });
+
+    expect(result.name).toBe("Nome Atualizado");
+    expect(mockedWorkspaceRepository.update).toHaveBeenCalledWith("workspace-uuid", {
+      name: "Nome Atualizado",
+    });
+  });
+});
