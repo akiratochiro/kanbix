@@ -247,3 +247,86 @@ describe("PATCH /api/workspaces/:id", () => {
     expect(response.status).toBe(401);
   });
 });
+
+describe("DELETE /api/workspaces/:id", () => {
+  it("deve excluir o workspace quando o usuário é OWNER", async () => {
+    const { token } = await createAuthenticatedUser();
+
+    const createResponse = await request(app)
+      .post("/api/workspaces")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Workspace a ser excluído" });
+
+    const response = await request(app)
+      .delete(`/api/workspaces/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(204);
+
+    const workspace = await prisma.workspace.findUnique({
+      where: { id: createResponse.body.id },
+    });
+    expect(workspace).toBeNull();
+  });
+
+  it("deve excluir também os WorkspaceMembers associados (cascade)", async () => {
+    const { token, userId } = await createAuthenticatedUser();
+
+    const createResponse = await request(app)
+      .post("/api/workspaces")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Workspace a ser excluído" });
+
+    await request(app)
+      .delete(`/api/workspaces/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    const membership = await prisma.workspaceMember.findUnique({
+      where: {
+        userId_workspaceId: { userId, workspaceId: createResponse.body.id },
+      },
+    });
+    expect(membership).toBeNull();
+  });
+
+  it("deve retornar 403 quando o usuário é ADMIN (não OWNER)", async () => {
+    const owner = await createAuthenticatedUser();
+
+    const createResponse = await request(app)
+      .post("/api/workspaces")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ name: "Workspace do Owner" });
+
+    await request(app).post("/api/users").send({
+      name: "Admin Comum",
+      email: "admin@example.com",
+      password: "senha12345",
+    });
+    const loginAdmin = await request(app).post("/api/login").send({
+      email: "admin@example.com",
+      password: "senha12345",
+    });
+
+    await prisma.workspaceMember.create({
+      data: {
+        userId: loginAdmin.body.user.id,
+        workspaceId: createResponse.body.id,
+        role: "ADMIN",
+      },
+    });
+
+    const response = await request(app)
+      .delete(`/api/workspaces/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${loginAdmin.body.token}`);
+
+    expect(response.status).toBe(403);
+  });
+
+  it("deve retornar 401 quando nenhum token é informado", async () => {
+    const response = await request(app).delete(
+      "/api/workspaces/qualquer-id"
+    );
+
+    expect(response.status).toBe(401);
+  });
+});
