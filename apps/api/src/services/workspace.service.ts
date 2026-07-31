@@ -43,4 +43,9 @@ export const workspaceService = {
     const workspace = await workspaceRepository.update(workspaceId, data);
     return toDTO(workspace);
   },
+
+
+  async deleteWorkspace(workspaceId: string): Promise<void> {
+  await workspaceRepository.delete(workspaceId);
+},
 };

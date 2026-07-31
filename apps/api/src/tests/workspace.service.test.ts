@@ -149,3 +149,18 @@ describe("workspaceService.updateWorkspace", () => {
     });
   });
 });
+
+
+describe("workspaceService.deleteWorkspace", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("deve chamar o repository para excluir o workspace", async () => {
+    mockedWorkspaceRepository.delete.mockResolvedValue(undefined);
+
+    await workspaceService.deleteWorkspace("workspace-uuid");
+
+    expect(mockedWorkspaceRepository.delete).toHaveBeenCalledWith("workspace-uuid");
+  });
+});

@@ -23,3 +23,11 @@ workspaceRoutes.patch(
   validate(updateWorkspaceSchema),
   workspaceController.update
 );
+
+
+workspaceRoutes.delete(
+  "/workspaces/:id",
+  authenticate,
+  requireWorkspaceRole("OWNER"),
+  workspaceController.delete
+);

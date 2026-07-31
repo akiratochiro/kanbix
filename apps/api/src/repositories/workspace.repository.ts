@@ -55,4 +55,8 @@ export const workspaceRepository = {
     data,
   });
 },
+
+async delete(id: string): Promise<void> {
+  await prisma.workspace.delete({ where: { id } });
+},
 };
