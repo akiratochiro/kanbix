@@ -175,3 +175,75 @@ describe("GET /api/workspaces", () => {
     expect(response.body).toEqual([]);
   });
 });
+
+describe("PATCH /api/workspaces/:id", () => {
+  it("deve atualizar o workspace quando o usuário é OWNER", async () => {
+    const { token } = await createAuthenticatedUser();
+
+    const createResponse = await request(app)
+      .post("/api/workspaces")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Nome Original" });
+
+    const response = await request(app)
+      .patch(`/api/workspaces/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Nome Atualizado" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.name).toBe("Nome Atualizado");
+  });
+
+  it("deve retornar 404 quando o workspace não existe", async () => {
+    const { token } = await createAuthenticatedUser();
+
+    const response = await request(app)
+      .patch("/api/workspaces/00000000-0000-0000-0000-000000000000")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Nome Atualizado" });
+
+    expect(response.status).toBe(404);
+  });
+
+  it("deve retornar 403 quando o usuário é MEMBER (sem permissão suficiente)", async () => {
+    const owner = await createAuthenticatedUser();
+
+    const createResponse = await request(app)
+      .post("/api/workspaces")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ name: "Workspace do Owner" });
+
+    await request(app).post("/api/users").send({
+      name: "Membro Comum",
+      email: "membro@example.com",
+      password: "senha12345",
+    });
+    const loginMember = await request(app).post("/api/login").send({
+      email: "membro@example.com",
+      password: "senha12345",
+    });
+
+    await prisma.workspaceMember.create({
+      data: {
+        userId: loginMember.body.user.id,
+        workspaceId: createResponse.body.id,
+        role: "MEMBER",
+      },
+    });
+
+    const response = await request(app)
+      .patch(`/api/workspaces/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${loginMember.body.token}`)
+      .send({ name: "Tentativa de Alteração" });
+
+    expect(response.status).toBe(403);
+  });
+
+  it("deve retornar 401 quando nenhum token é informado", async () => {
+    const response = await request(app)
+      .patch("/api/workspaces/qualquer-id")
+      .send({ name: "Nome Atualizado" });
+
+    expect(response.status).toBe(401);
+  });
+});
