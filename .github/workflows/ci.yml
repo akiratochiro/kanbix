@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Testes e verificação de tipos
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: kanbix
+          POSTGRES_PASSWORD: kanbix_ci_password
+          POSTGRES_DB: kanbix_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: "postgresql://kanbix:kanbix_ci_password@localhost:5432/kanbix_test?schema=public"
+      JWT_SECRET: "ci-test-secret-nao-usar-em-producao"
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Verificar tipos TypeScript (API)
+        run: npx tsc --noEmit --project apps/api/tsconfig.json
+
+      - name: Rodar testes unitários
+        run: npm run test --workspace=apps/api
+
+      - name: Aplicar migrations no banco de teste
+        run: npm run prisma:migrate:test --workspace=apps/api
+
+      - name: Rodar testes de integração
+        run: npm run test:integration --workspace=apps/api
