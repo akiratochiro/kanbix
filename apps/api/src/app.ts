@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { userRoutes } from "./routes/user.routes";
+import { workspaceRoutes } from "./routes/workspace.routes";
 import { errorHandler } from "./middlewares/error-handler";
 
 export const app = express();
@@ -13,5 +14,6 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api", userRoutes);
+app.use("/api", workspaceRoutes);
 
 app.use(errorHandler);
