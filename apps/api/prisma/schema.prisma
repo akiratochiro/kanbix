@@ -23,6 +23,8 @@ model User {
 
   workspaceMemberships WorkspaceMember[]
   createdBoards        Board[]
+  assignedCards Card[]
+
 
   @@map("users")
 }
@@ -75,6 +77,48 @@ model Board {
 
   createdBy   User   @relation(fields: [createdById], references: [id])
   createdById String
+  lists List[]
 
   @@map("boards")
+}
+
+enum CardPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model List {
+  id        String   @id @default(uuid())
+  name      String
+  position  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId String
+
+  cards Card[]
+
+  @@map("lists")
+}
+
+model Card {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  position    Int
+  priority    CardPriority @default(MEDIUM)
+  dueDate     DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId String
+
+  assignee   User?   @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  assigneeId String?
+
+  @@map("cards")
 }

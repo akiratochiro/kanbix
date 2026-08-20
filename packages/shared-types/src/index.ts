@@ -26,3 +26,23 @@ export interface Board {
   createdById: string;
   createdAt: string;
 }
+
+export interface List {
+  id: string;
+  name: string;
+  position: number;
+  boardId: string;
+  createdAt: string;
+}
+
+export interface Card {
+  id: string;
+  title: string;
+  description: string | null;
+  position: number;
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  dueDate: string | null;
+  listId: string;
+  assigneeId: string | null;
+  createdAt: string;
+}

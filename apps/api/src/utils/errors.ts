@@ -56,3 +56,15 @@ export class BoardNotFoundError extends AppError {
     super("Board não encontrado.", 404);
   }
 }
+
+export class ListNotFoundError extends AppError {
+  constructor() {
+    super("Lista não encontrada.", 404);
+  }
+}
+
+export class CardNotFoundError extends AppError {
+  constructor() {
+    super("Card não encontrado.", 404);
+  }
+}
