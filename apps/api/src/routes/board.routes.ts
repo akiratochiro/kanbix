@@ -12,12 +12,14 @@ boardRoutes.post(
   authenticate,
   requireWorkspaceRole("MEMBER"),
   validate(createBoardSchema),
-  boardController.create
+  boardController.create,
 );
 
 boardRoutes.get(
   "/workspaces/:id/boards",
   authenticate,
   requireWorkspaceRole("MEMBER"),
-  boardController.list
-);  
+  boardController.list,
+);
+
+boardRoutes.delete("/boards/:id", authenticate, boardController.delete);

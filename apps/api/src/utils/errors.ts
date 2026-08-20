@@ -50,3 +50,9 @@ export class InsufficientPermissionError extends AppError {
     super("Você não tem permissão suficiente para esta ação.", 403);
   }
 }
+
+export class BoardNotFoundError extends AppError {
+  constructor() {
+    super("Board não encontrado.", 404);
+  }
+}

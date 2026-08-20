@@ -6,7 +6,7 @@ export const boardController = {
   async create(
     req: Request<{ id: string }, unknown, CreateBoardInput>,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const board = await boardService.createBoard({
@@ -23,11 +23,24 @@ export const boardController = {
   async list(
     req: Request<{ id: string }>,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> {
     try {
       const boards = await boardService.getBoardsByWorkspaceId(req.params.id);
       res.status(200).json(boards);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async delete(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      await boardService.deleteBoard(req.params.id, req.userId!);
+      res.status(204).send();
     } catch (error) {
       next(error);
     }

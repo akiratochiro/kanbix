@@ -1,4 +1,6 @@
 import { boardRepository } from "../repositories/board.repository";
+import { workspaceRepository } from "../repositories/workspace.repository";
+import { BoardNotFoundError, InsufficientPermissionError } from "../utils/errors";
 import type { Board } from "@kanbix/shared-types";
 
 interface CreateBoardInput {
@@ -38,5 +40,31 @@ export const boardService = {
   async getBoardsByWorkspaceId(workspaceId: string): Promise<Board[]> {
     const boards = await boardRepository.findManyByWorkspaceId(workspaceId);
     return boards.map(toDTO);
+  },
+
+  async deleteBoard(boardId: string, userId: string): Promise<void> {
+    const board = await boardRepository.findById(boardId);
+
+    if (!board) {
+      throw new BoardNotFoundError();
+    }
+
+    const isCreator = board.createdById === userId;
+
+    if (!isCreator) {
+      const membership = await workspaceRepository.findMembership(
+        userId,
+        board.workspaceId
+      );
+
+      const hasElevatedRole =
+        membership?.role === "ADMIN" || membership?.role === "OWNER";
+
+      if (!hasElevatedRole) {
+        throw new InsufficientPermissionError();
+      }
+    }
+
+    await boardRepository.delete(boardId);
   },
 };

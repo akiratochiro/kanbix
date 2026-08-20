@@ -107,3 +107,63 @@ describe("GET /api/workspaces/:id/boards", () => {
     expect(response.body).toHaveLength(2);
   });
 });
+
+describe("DELETE /api/boards/:id", () => {
+  it("deve excluir o board quando o usuário é o criador", async () => {
+    const { token, workspaceId } = await createUserWithWorkspace();
+
+    const createResponse = await request(app)
+      .post(`/api/workspaces/${workspaceId}/boards`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Board a excluir" });
+
+    const response = await request(app)
+      .delete(`/api/boards/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(204);
+  });
+
+  it("deve retornar 403 quando não é criador nem ADMIN/OWNER", async () => {
+    const { token, workspaceId } = await createUserWithWorkspace();
+
+    const createResponse = await request(app)
+      .post(`/api/workspaces/${workspaceId}/boards`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Board do criador" });
+
+    await request(app).post("/api/users").send({
+      name: "Membro Comum",
+      email: "membro@example.com",
+      password: "senha12345",
+    });
+    const loginMember = await request(app).post("/api/login").send({
+      email: "membro@example.com",
+      password: "senha12345",
+    });
+
+    await prisma.workspaceMember.create({
+      data: {
+        userId: loginMember.body.user.id,
+        workspaceId,
+        role: "MEMBER",
+      },
+    });
+
+    const response = await request(app)
+      .delete(`/api/boards/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${loginMember.body.token}`);
+
+    expect(response.status).toBe(403);
+  });
+
+  it("deve retornar 404 quando o board não existe", async () => {
+    const { token } = await createUserWithWorkspace();
+
+    const response = await request(app)
+      .delete("/api/boards/00000000-0000-0000-0000-000000000000")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+  });
+});
