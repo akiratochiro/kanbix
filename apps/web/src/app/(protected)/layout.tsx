@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -30,5 +31,12 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <div className="fixed bottom-4 right-4">
+        <ThemeToggle />
+      </div>
+    </>
+  );
 }
