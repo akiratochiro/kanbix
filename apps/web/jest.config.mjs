@@ -1,4 +1,4 @@
-const nextJest = require("next/jest");
+import nextJest from "next/jest.js";
 
 // Carrega next.config.ts e os .env no ambiente de teste, e aplica o
 // mesmo transform (SWC) que o app usa.
@@ -15,4 +15,4 @@ const config = {
   clearMocks: true,
 };
 
-module.exports = createJestConfig(config);
+export default createJestConfig(config);
