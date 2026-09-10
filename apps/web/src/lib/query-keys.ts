@@ -17,3 +17,9 @@ export const workspaceKeys = {
   list: () => [...workspaceKeys.all, "list"] as const,
   detail: (id: string) => [...workspaceKeys.all, id] as const,
 };
+
+export const boardKeys = {
+  all: ["boards"] as const,
+  listByWorkspace: (workspaceId: string) =>
+    [...boardKeys.all, "workspace", workspaceId] as const,
+};

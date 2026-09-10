@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { WorkspaceWithRole } from "@kanbix/shared-types";
 import { Button } from "@/components/ui/button";
@@ -60,19 +61,26 @@ export default function WorkspacesPage() {
           <ul className="grid gap-4 sm:grid-cols-2">
             {workspaces.map((workspace) => (
               <li key={workspace.id}>
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle>{workspace.name}</CardTitle>
-                      <Badge variant="secondary">
-                        {roleLabels[workspace.role]}
-                      </Badge>
-                    </div>
-                    {workspace.description && (
-                      <CardDescription>{workspace.description}</CardDescription>
-                    )}
-                  </CardHeader>
-                </Card>
+                <Link
+                  href={`/workspaces/${workspace.id}`}
+                  className="block rounded-xl transition-colors hover:border-ring focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <Card className="h-full transition-colors hover:border-ring">
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-2">
+                        <CardTitle>{workspace.name}</CardTitle>
+                        <Badge variant="secondary">
+                          {roleLabels[workspace.role]}
+                        </Badge>
+                      </div>
+                      {workspace.description && (
+                        <CardDescription>
+                          {workspace.description}
+                        </CardDescription>
+                      )}
+                    </CardHeader>
+                  </Card>
+                </Link>
               </li>
             ))}
           </ul>
