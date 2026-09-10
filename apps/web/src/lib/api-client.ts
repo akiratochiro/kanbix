@@ -1,3 +1,5 @@
+import { getToken } from "./token-store";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export class ApiError extends Error {
@@ -5,11 +7,6 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
   }
-}
-
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("kanbix_token");
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {

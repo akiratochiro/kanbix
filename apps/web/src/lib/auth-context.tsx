@@ -4,21 +4,15 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@kanbix/shared-types";
+import { ApiError } from "./api-client";
 import { authService } from "@/services/auth.service";
 import { authKeys } from "./query-keys";
-
-const TOKEN_KEY = "kanbix_token";
-
-function readToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
-}
+import { tokenStore } from "./token-store";
 
 interface AuthContextValue {
   user: User | null;
@@ -32,51 +26,46 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
-  // Começa `false` para bater com o HTML renderizado no servidor (sem
-  // localStorage). O valor real é lido no efeito de montagem.
-  const [hasToken, setHasToken] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    setHasToken(readToken() !== null);
-    setIsInitialized(true);
-  }, []);
+  const token = useSyncExternalStore(
+    tokenStore.subscribe,
+    tokenStore.getSnapshot,
+    tokenStore.getServerSnapshot
+  );
 
   const query = useQuery({
     queryKey: authKeys.me(),
-    queryFn: authService.getMe,
-    // Sem token, `GET /me` é 401 garantido.
-    enabled: isInitialized && hasToken,
-    // A identidade do usuário não muda sozinha; revalidamos na mão
-    // (ex.: após editar o perfil) via invalidateQueries.
+    queryFn: async () => {
+      try {
+        return await authService.getMe();
+      } catch (error) {
+        // Token inválido/expirado: descarta para não ficar tentando.
+        if (error instanceof ApiError && error.status === 401) {
+          tokenStore.clear();
+        }
+        throw error;
+      }
+    },
+    // Sem token, GET /me é 401 garantido.
+    enabled: token !== null,
+    // A identidade do usuário não muda sozinha; revalidamos na mão.
     staleTime: Infinity,
     retry: false,
   });
 
   const login = useCallback(
-    (token: string, user: User) => {
-      localStorage.setItem(TOKEN_KEY, token);
-      setHasToken(true);
+    (nextToken: string, user: User) => {
+      tokenStore.set(nextToken);
       queryClient.setQueryData(authKeys.me(), user);
     },
     [queryClient]
   );
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    setHasToken(false);
+    tokenStore.clear();
     queryClient.removeQueries({ queryKey: authKeys.me() });
   }, [queryClient]);
 
-  // Token inválido ou expirado: o servidor respondeu erro, então limpamos.
-  useEffect(() => {
-    if (query.isError) {
-      localStorage.removeItem(TOKEN_KEY);
-      setHasToken(false);
-    }
-  }, [query.isError]);
-
-  const isLoading = !isInitialized || (hasToken && query.isPending);
+  const isLoading = token !== null && query.isPending;
 
   return (
     <AuthContext.Provider
