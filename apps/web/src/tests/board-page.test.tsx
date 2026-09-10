@@ -103,14 +103,14 @@ describe("BoardPage", () => {
     );
   });
 
-  it("mostra o estado vazio quando não há listas", () => {
+  it("sem listas, mostra apenas o botão de adicionar lista", () => {
     mockUseBoard.mockReturnValue(boardLoaded);
     mockUseLists.mockReturnValue(listsLoaded([]));
 
     renderWithProviders(<BoardPage />);
 
     expect(
-      screen.getByText(/este quadro ainda não tem listas/i)
+      screen.getByRole("button", { name: /adicionar lista/i })
     ).toBeInTheDocument();
   });
 

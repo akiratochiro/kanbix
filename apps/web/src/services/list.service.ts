@@ -7,4 +7,7 @@ import { apiClient } from "@/lib/api-client";
 export const listService = {
   listByBoard: (boardId: string) =>
     apiClient.get<List[]>(`/boards/${boardId}/lists`),
+
+  create: (boardId: string, name: string) =>
+    apiClient.post<List>(`/boards/${boardId}/lists`, { name }),
 };

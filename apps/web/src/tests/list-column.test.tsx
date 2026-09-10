@@ -5,6 +5,9 @@ import { ListColumn } from "@/app/(protected)/boards/[id]/list-column";
 
 const mockUseCards = jest.fn();
 jest.mock("@/hooks/use-cards", () => ({ useCards: () => mockUseCards() }));
+jest.mock("@/hooks/use-create-card", () => ({
+  useCreateCard: () => ({ mutateAsync: jest.fn().mockResolvedValue({}) }),
+}));
 
 const list: List = {
   id: "l1",

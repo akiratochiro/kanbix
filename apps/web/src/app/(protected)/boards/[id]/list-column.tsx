@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCards } from "@/hooks/use-cards";
+import { useCreateCard } from "@/hooks/use-create-card";
+import { QuickAddForm } from "./quick-add-form";
 
 type BadgeVariant = "secondary" | "default" | "destructive";
 
@@ -30,6 +32,7 @@ function formatDueDate(iso: string) {
 
 export function ListColumn({ list }: { list: List }) {
   const cards = useCards(list.id);
+  const createCard = useCreateCard(list.id);
 
   return (
     <div className="flex w-72 shrink-0 flex-col gap-2 rounded-lg bg-muted/50 p-3">
@@ -91,6 +94,13 @@ export function ListColumn({ list }: { list: List }) {
           })}
         </ul>
       )}
+
+      <QuickAddForm
+        addLabel="Adicionar cartão"
+        placeholder="Título do cartão"
+        multiline
+        onAdd={(title) => createCard.mutateAsync({ title })}
+      />
     </div>
   );
 }

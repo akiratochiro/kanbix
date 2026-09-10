@@ -7,13 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBoard } from "@/hooks/use-board";
 import { useLists } from "@/hooks/use-lists";
+import { useCreateList } from "@/hooks/use-create-list";
 import { ListColumn } from "./list-column";
+import { QuickAddForm } from "./quick-add-form";
 
 export default function BoardPage() {
   const { id: boardId } = useParams<{ id: string }>();
 
   const board = useBoard(boardId);
   const lists = useLists(boardId);
+  const createList = useCreateList(boardId);
 
   return (
     <main className="flex min-h-screen flex-col gap-6 p-8">
@@ -61,16 +64,23 @@ export default function BoardPage() {
               onRetry={() => lists.refetch()}
               isRetrying={lists.isFetching}
             />
-          ) : lists.data.length === 0 ? (
-            <ListsEmpty />
           ) : (
-            <ol className="flex gap-4 overflow-x-auto pb-4">
-              {lists.data.map((list) => (
-                <li key={list.id}>
-                  <ListColumn list={list} />
-                </li>
-              ))}
-            </ol>
+            <div className="flex items-start gap-4 overflow-x-auto pb-4">
+              <ol className="flex gap-4">
+                {lists.data.map((list) => (
+                  <li key={list.id}>
+                    <ListColumn list={list} />
+                  </li>
+                ))}
+              </ol>
+              <div className="w-72 shrink-0 rounded-lg bg-muted/30 p-2">
+                <QuickAddForm
+                  addLabel="Adicionar lista"
+                  placeholder="Nome da lista"
+                  onAdd={(name) => createList.mutateAsync(name)}
+                />
+              </div>
+            </div>
           )}
         </section>
       )}
@@ -116,10 +126,3 @@ function ListsError({
   );
 }
 
-function ListsEmpty() {
-  return (
-    <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-      Este quadro ainda não tem listas.
-    </div>
-  );
-}
