@@ -1,0 +1,23 @@
+# Blueprint do Render para a API do Kanbix.
+# No Render: New > Blueprint > aponte para este repositório.
+# O banco fica no Neon (fora do Render) — veja DEPLOY.md.
+
+services:
+  - type: web
+    name: kanbix-api
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      # Connection string do Neon (use a DIRETA, sem -pooler).
+      - key: DATABASE_URL
+        sync: false
+      # Gerado pelo Render no primeiro deploy.
+      - key: JWT_SECRET
+        generateValue: true
+      # URL do front na Vercel (defina depois que a Vercel existir).
+      - key: CORS_ORIGIN
+        sync: false
