@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -21,11 +23,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ApiError } from "@/lib/api-client";
+import { useAuth } from "@/lib/auth-context";
 import { useLogin } from "@/hooks/use-login";
 import { loginSchema, type LoginFormData } from "./schema";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
   const login = useLogin();
+
+  // Já autenticado (ex.: voltou ao site com sessão salva): pula o login.
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace("/workspaces");
+    }
+  }, [isLoading, user, router]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
