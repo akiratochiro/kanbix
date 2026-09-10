@@ -19,5 +19,11 @@ export const updateCardSchema = z.object({
   listId: z.string().uuid().optional(),
 });
 
+export const moveCardSchema = z.object({
+  toListId: z.string().uuid(),
+  toIndex: z.number().int().min(0),
+});
+
 export type CreateCardInput = z.infer<typeof createCardSchema>;
 export type UpdateCardInput = z.infer<typeof updateCardSchema>;
+export type MoveCardInput = z.infer<typeof moveCardSchema>;

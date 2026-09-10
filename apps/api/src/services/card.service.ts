@@ -84,6 +84,41 @@ export const cardService = {
     return toDTO(updated);
   },
 
+  async moveCard(
+    cardId: string,
+    userId: string,
+    input: { toListId: string; toIndex: number }
+  ): Promise<Card> {
+    const card = await cardRepository.findById(cardId);
+    if (!card) throw new CardNotFoundError();
+
+    const sourceList = await getListOrThrow(card.listId);
+    await assertBoardMembership(sourceList.boardId, userId);
+
+    const targetList = await getListOrThrow(input.toListId);
+    // Só movemos dentro do mesmo board.
+    if (targetList.boardId !== sourceList.boardId) {
+      throw new ListNotFoundError();
+    }
+
+    const targetCount = await cardRepository.countByListId(input.toListId);
+    const sameList = input.toListId === card.listId;
+    // Índice máximo válido: dentro da mesma lista o próprio card já ocupa
+    // uma posição; em outra lista pode ir para o fim (targetCount).
+    const maxIndex = sameList ? Math.max(0, targetCount - 1) : targetCount;
+    const newPosition = Math.max(0, Math.min(input.toIndex, maxIndex));
+
+    const moved = await cardRepository.move({
+      cardId,
+      sourceListId: card.listId,
+      targetListId: input.toListId,
+      oldPosition: card.position,
+      newPosition,
+    });
+
+    return toDTO(moved);
+  },
+
   async deleteCard(cardId: string, userId: string): Promise<void> {
     const card = await cardRepository.findById(cardId);
     if (!card) throw new CardNotFoundError();

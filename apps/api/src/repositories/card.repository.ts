@@ -34,6 +34,59 @@ export const cardRepository = {
     return prisma.card.findMany({ where: { listId }, orderBy: { position: "asc" } });
   },
 
+  async countByListId(listId: string): Promise<number> {
+    return prisma.card.count({ where: { listId } });
+  },
+
+  async move(params: {
+    cardId: string;
+    sourceListId: string;
+    targetListId: string;
+    oldPosition: number;
+    newPosition: number;
+  }): Promise<PrismaCard> {
+    const { cardId, sourceListId, targetListId, oldPosition, newPosition } =
+      params;
+
+    return prisma.$transaction(async (tx) => {
+      if (sourceListId === targetListId) {
+        if (newPosition < oldPosition) {
+          await tx.card.updateMany({
+            where: {
+              listId: sourceListId,
+              position: { gte: newPosition, lt: oldPosition },
+            },
+            data: { position: { increment: 1 } },
+          });
+        } else if (newPosition > oldPosition) {
+          await tx.card.updateMany({
+            where: {
+              listId: sourceListId,
+              position: { gt: oldPosition, lte: newPosition },
+            },
+            data: { position: { decrement: 1 } },
+          });
+        }
+      } else {
+        // fecha o buraco na lista de origem
+        await tx.card.updateMany({
+          where: { listId: sourceListId, position: { gt: oldPosition } },
+          data: { position: { decrement: 1 } },
+        });
+        // abre espaço na lista de destino
+        await tx.card.updateMany({
+          where: { listId: targetListId, position: { gte: newPosition } },
+          data: { position: { increment: 1 } },
+        });
+      }
+
+      return tx.card.update({
+        where: { id: cardId },
+        data: { listId: targetListId, position: newPosition },
+      });
+    });
+  },
+
   async update(id: string, data: UpdateCardData): Promise<PrismaCard> {
     return prisma.card.update({ where: { id }, data });
   },

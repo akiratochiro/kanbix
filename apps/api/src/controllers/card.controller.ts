@@ -1,6 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
 import { cardService } from "../services/card.service";
-import type { CreateCardInput, UpdateCardInput } from "../schemas/card.schema";
+import type {
+  CreateCardInput,
+  MoveCardInput,
+  UpdateCardInput,
+} from "../schemas/card.schema";
 
 export const cardController = {
   async create(
@@ -32,6 +36,19 @@ export const cardController = {
   ): Promise<void> {
     try {
       const card = await cardService.updateCard(req.params.id, req.userId!, req.body);
+      res.status(200).json(card);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async move(
+    req: Request<{ id: string }, unknown, MoveCardInput>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const card = await cardService.moveCard(req.params.id, req.userId!, req.body);
       res.status(200).json(card);
     } catch (error) {
       next(error);
