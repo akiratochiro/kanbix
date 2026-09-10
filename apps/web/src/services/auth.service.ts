@@ -6,6 +6,12 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+}
+
 export interface AuthResponse {
   user: User;
   token: string;
@@ -18,6 +24,9 @@ export interface AuthResponse {
 export const authService = {
   login: (credentials: LoginCredentials) =>
     apiClient.post<AuthResponse>("/login", credentials),
+
+  register: (payload: RegisterPayload) =>
+    apiClient.post<User>("/users", payload),
 
   getMe: () => apiClient.get<User>("/me"),
 };

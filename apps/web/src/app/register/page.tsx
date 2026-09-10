@@ -21,24 +21,28 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ApiError } from "@/lib/api-client";
-import { useLogin } from "@/hooks/use-login";
-import { loginSchema, type LoginFormData } from "./schema";
+import { useRegister } from "@/hooks/use-register";
+import { registerSchema, type RegisterFormData } from "./schema";
 
-export default function LoginPage() {
-  const login = useLogin();
+export default function RegisterPage() {
+  const register = useRegister();
 
-  const form = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+  const form = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
   });
 
-  function onSubmit(data: LoginFormData) {
-    login.mutate(data);
+  function onSubmit(data: RegisterFormData) {
+    register.mutate({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+    });
   }
 
-  const serverError = login.error
-    ? login.error instanceof ApiError
-      ? login.error.message
+  const serverError = register.error
+    ? register.error instanceof ApiError
+      ? register.error.message
       : "Não foi possível conectar ao servidor."
     : null;
 
@@ -46,11 +50,11 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Entrar no Kanbix</CardTitle>
+          <CardTitle className="text-2xl">Criar conta no Kanbix</CardTitle>
           <CardDescription>
-            Não tem conta?{" "}
-            <Link href="/register" className="font-medium underline">
-              Criar agora
+            Já tem conta?{" "}
+            <Link href="/login" className="font-medium underline">
+              Entrar
             </Link>
           </CardDescription>
         </CardHeader>
@@ -61,6 +65,20 @@ export default function LoginPage() {
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-4"
             >
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl>
+                      <Input autoComplete="name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="email"
@@ -84,7 +102,25 @@ export default function LoginPage() {
                     <FormControl>
                       <Input
                         type="password"
-                        autoComplete="current-password"
+                        autoComplete="new-password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirmar senha</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        autoComplete="new-password"
                         {...field}
                       />
                     </FormControl>
@@ -102,9 +138,9 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={login.isPending}
+                disabled={register.isPending}
               >
-                {login.isPending ? "Entrando..." : "Entrar"}
+                {register.isPending ? "Criando conta..." : "Criar conta"}
               </Button>
             </form>
           </Form>
