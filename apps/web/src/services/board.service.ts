@@ -14,6 +14,8 @@ export const boardService = {
   listByWorkspace: (workspaceId: string) =>
     apiClient.get<Board[]>(`/workspaces/${workspaceId}/boards`),
 
+  getById: (boardId: string) => apiClient.get<Board>(`/boards/${boardId}`),
+
   create: (workspaceId: string, payload: CreateBoardPayload) =>
     apiClient.post<Board>(`/workspaces/${workspaceId}/boards`, payload),
 };

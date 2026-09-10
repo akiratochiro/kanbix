@@ -86,16 +86,22 @@ export default function WorkspaceDetailPage() {
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {boards.data.map((board) => (
                 <li key={board.id}>
-                  <Card
-                    style={{ borderTopColor: board.color, borderTopWidth: 3 }}
+                  <Link
+                    href={`/boards/${board.id}`}
+                    className="block rounded-xl focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
-                    <CardHeader>
-                      <CardTitle>{board.name}</CardTitle>
-                      {board.description && (
-                        <CardDescription>{board.description}</CardDescription>
-                      )}
-                    </CardHeader>
-                  </Card>
+                    <Card
+                      className="h-full transition-colors hover:border-ring"
+                      style={{ borderTopColor: board.color, borderTopWidth: 3 }}
+                    >
+                      <CardHeader>
+                        <CardTitle>{board.name}</CardTitle>
+                        {board.description && (
+                          <CardDescription>{board.description}</CardDescription>
+                        )}
+                      </CardHeader>
+                    </Card>
+                  </Link>
                 </li>
               ))}
             </ul>
