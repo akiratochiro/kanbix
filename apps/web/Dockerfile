@@ -15,6 +15,8 @@ COPY apps/web ./apps/web
 # NEXT_PUBLIC_* é embutido no bundle do cliente durante o build.
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# ativa output: "standalone" no next.config (só aqui, não na Vercel/CI)
+ENV BUILD_STANDALONE=true
 RUN npm run build --workspace=web
 
 FROM node:20-alpine AS runtime
