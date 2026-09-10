@@ -13,6 +13,16 @@ const mockUseLists = jest.fn();
 jest.mock("@/hooks/use-board", () => ({ useBoard: () => mockUseBoard() }));
 jest.mock("@/hooks/use-lists", () => ({ useLists: () => mockUseLists() }));
 
+// A pagina delega os cartoes ao ListColumn; aqui so nos interessam as colunas.
+jest.mock("@/hooks/use-cards", () => ({
+  useCards: () => ({
+    data: [],
+    isPending: false,
+    isError: false,
+    isSuccess: true,
+  }),
+}));
+
 const board: Board = {
   id: "b1",
   name: "Sprint 1",

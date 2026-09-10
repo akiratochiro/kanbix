@@ -30,3 +30,8 @@ export const listKeys = {
   listByBoard: (boardId: string) =>
     [...listKeys.all, "board", boardId] as const,
 };
+
+export const cardKeys = {
+  all: ["cards"] as const,
+  listByList: (listId: string) => [...cardKeys.all, "list", listId] as const,
+};

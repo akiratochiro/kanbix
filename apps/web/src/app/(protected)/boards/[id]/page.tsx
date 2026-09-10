@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBoard } from "@/hooks/use-board";
 import { useLists } from "@/hooks/use-lists";
+import { ListColumn } from "./list-column";
 
 export default function BoardPage() {
   const { id: boardId } = useParams<{ id: string }>();
@@ -65,13 +66,8 @@ export default function BoardPage() {
           ) : (
             <ol className="flex gap-4 overflow-x-auto pb-4">
               {lists.data.map((list) => (
-                <li key={list.id} className="w-72 shrink-0">
-                  <div className="rounded-lg bg-muted/50 p-3">
-                    <h2 className="px-1 text-sm font-medium">{list.name}</h2>
-                    <p className="px-1 pt-2 text-xs text-muted-foreground">
-                      Os cartões entram no próximo passo.
-                    </p>
-                  </div>
+                <li key={list.id}>
+                  <ListColumn list={list} />
                 </li>
               ))}
             </ol>
