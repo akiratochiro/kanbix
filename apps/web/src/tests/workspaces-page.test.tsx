@@ -1,6 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { WorkspaceWithRole } from "@kanbix/shared-types";
+import { renderWithProviders } from "./test-utils";
 import WorkspacesPage from "@/app/(protected)/workspaces/page";
 
 jest.mock("next/navigation", () => ({
@@ -38,7 +39,7 @@ describe("WorkspacesPage", () => {
   it("mostra o skeleton enquanto carrega", () => {
     mockUseWorkspaces.mockReturnValue({ isPending: true, isError: false });
 
-    render(<WorkspacesPage />);
+    renderWithProviders(<WorkspacesPage />);
 
     expect(
       screen.getByRole("status", { name: /carregando workspaces/i })
@@ -54,7 +55,7 @@ describe("WorkspacesPage", () => {
       refetch,
     });
 
-    render(<WorkspacesPage />);
+    renderWithProviders(<WorkspacesPage />);
 
     expect(
       screen.getByText(/não foi possível carregar seus workspaces/i)
@@ -73,7 +74,7 @@ describe("WorkspacesPage", () => {
       data: [],
     });
 
-    render(<WorkspacesPage />);
+    renderWithProviders(<WorkspacesPage />);
 
     expect(
       screen.getByText(/você ainda não participa de nenhum workspace/i)
@@ -90,7 +91,7 @@ describe("WorkspacesPage", () => {
       ],
     });
 
-    render(<WorkspacesPage />);
+    renderWithProviders(<WorkspacesPage />);
 
     expect(screen.getByText("Time de Produto")).toBeInTheDocument();
     expect(screen.getByText("Marketing")).toBeInTheDocument();

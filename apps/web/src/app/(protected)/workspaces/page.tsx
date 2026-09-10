@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspaces } from "@/hooks/use-workspaces";
+import { CreateWorkspaceDialog } from "./create-workspace-dialog";
 
 const roleLabels: Record<WorkspaceWithRole["role"], string> = {
   OWNER: "Dono",
@@ -40,9 +41,12 @@ export default function WorkspacesPage() {
             Logado como {user?.name} ({user?.email}).
           </p>
         </div>
-        <Button variant="outline" onClick={handleLogout}>
-          Sair
-        </Button>
+        <div className="flex items-center gap-2">
+          <CreateWorkspaceDialog trigger={<Button>Novo workspace</Button>} />
+          <Button variant="outline" onClick={handleLogout}>
+            Sair
+          </Button>
+        </div>
       </header>
 
       <section>
@@ -120,8 +124,13 @@ function WorkspacesError({
 
 function WorkspacesEmpty() {
   return (
-    <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-      Você ainda não participa de nenhum workspace.
+    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8 text-center">
+      <p className="text-sm text-muted-foreground">
+        Você ainda não participa de nenhum workspace.
+      </p>
+      <CreateWorkspaceDialog
+        trigger={<Button variant="outline">Criar workspace</Button>}
+      />
     </div>
   );
 }
