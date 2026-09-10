@@ -1,41 +1,31 @@
 "use client";
 
-import type { Card, List } from "@kanbix/shared-types";
-import { Badge } from "@/components/ui/badge";
+import { useDroppable } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import type { List } from "@kanbix/shared-types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCards } from "@/hooks/use-cards";
 import { useCreateCard } from "@/hooks/use-create-card";
 import { QuickAddForm } from "./quick-add-form";
-
-type BadgeVariant = "secondary" | "default" | "destructive";
-
-const priorityBadge: Record<
-  Card["priority"],
-  { label: string; variant: BadgeVariant } | null
-> = {
-  LOW: null,
-  MEDIUM: { label: "Média", variant: "secondary" },
-  HIGH: { label: "Alta", variant: "default" },
-  URGENT: { label: "Urgente", variant: "destructive" },
-};
-
-function formatDueDate(iso: string) {
-  // UTC: a data-limite é um dia de calendário; sem isso o fuso local
-  // do navegador pode empurrá-la para o dia anterior/seguinte.
-  return new Date(iso).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    timeZone: "UTC",
-  });
-}
+import { SortableCard } from "./sortable-card";
+import type { ListDropData } from "./dnd";
 
 export function ListColumn({ list }: { list: List }) {
   const cards = useCards(list.id);
   const createCard = useCreateCard(list.id);
 
+  const dropData: ListDropData = { type: "list", listId: list.id };
+  const { setNodeRef } = useDroppable({ id: list.id, data: dropData });
+
   return (
-    <div className="flex w-72 shrink-0 flex-col gap-2 rounded-lg bg-muted/50 p-3">
+    <div
+      ref={setNodeRef}
+      className="flex w-72 shrink-0 flex-col gap-2 rounded-lg bg-muted/50 p-3"
+    >
       <div className="flex items-center justify-between px-1">
         <h2 className="text-sm font-medium">{list.name}</h2>
         {cards.isSuccess && (
@@ -69,30 +59,21 @@ export function ListColumn({ list }: { list: List }) {
       ) : cards.data.length === 0 ? (
         <p className="px-1 py-2 text-xs text-muted-foreground">Sem cartões.</p>
       ) : (
-        <ul className="space-y-2">
-          {cards.data.map((card) => {
-            const badge = priorityBadge[card.priority];
-            return (
-              <li key={card.id}>
-                <div className="rounded-md border bg-background p-3 shadow-sm">
-                  <p className="text-sm">{card.title}</p>
-                  {(badge || card.dueDate) && (
-                    <div className="mt-2 flex items-center gap-2">
-                      {badge && (
-                        <Badge variant={badge.variant}>{badge.label}</Badge>
-                      )}
-                      {card.dueDate && (
-                        <span className="text-xs text-muted-foreground">
-                          {formatDueDate(card.dueDate)}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <SortableContext
+          items={cards.data.map((card) => card.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <ul className="space-y-2">
+            {cards.data.map((card, index) => (
+              <SortableCard
+                key={card.id}
+                card={card}
+                listId={list.id}
+                index={index}
+              />
+            ))}
+          </ul>
+        </SortableContext>
       )}
 
       <QuickAddForm

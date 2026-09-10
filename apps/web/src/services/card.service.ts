@@ -17,4 +17,7 @@ export const cardService = {
 
   create: (listId: string, payload: CreateCardPayload) =>
     apiClient.post<Card>(`/lists/${listId}/cards`, payload),
+
+  move: (cardId: string, payload: { toListId: string; toIndex: number }) =>
+    apiClient.patch<Card>(`/cards/${cardId}/move`, payload),
 };
