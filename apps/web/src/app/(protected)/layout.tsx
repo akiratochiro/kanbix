@@ -20,7 +20,11 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   // nunca a tela protegida sem dados.
   if (isLoading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div
+        role="status"
+        aria-label="Carregando"
+        className="flex min-h-screen items-center justify-center"
+      >
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     );
