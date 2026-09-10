@@ -9,7 +9,13 @@ import { listRoutes } from "./routes/list.routes";
 
 export const app = express();
 
-app.use(cors());
+// Em produção, restrinja a origem via CORS_ORIGIN (lista separada por
+// vírgula). Sem a env (dev), reflete qualquer origem.
+const corsOrigin = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim())
+  : true;
+
+app.use(cors({ origin: corsOrigin }));
 app.use(express.json());
 
 app.get("/health", (_req, res) => {

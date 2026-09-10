@@ -5,6 +5,9 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "dotenv -e ../../.env -- tsx watch src/server.ts",
+    "build": "prisma generate && tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "start:prod": "prisma migrate deploy && node dist/server.js",
     "prisma:generate": "dotenv -e ../../.env -- prisma generate",
     "prisma:migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "prisma:studio": "dotenv -e ../../.env -- prisma studio",
@@ -13,12 +16,14 @@
     "test:integration": "dotenv -e ../../.env.test -- jest --config jest.integration.config.js --runInBand"
   },
   "dependencies": {
+    "@kanbix/shared-types": "*",
     "@prisma/client": "^6.19.3",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
+    "prisma": "^6.19.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -30,9 +35,8 @@
     "@types/multer": "^2.2.0",
     "@types/node": "^26.1.2",
     "@types/supertest": "^7.2.1",
-    "dotenv-cli": "^X.X.X",
+    "dotenv-cli": "^11.0.0",
     "jest": "^30.4.2",
-    "prisma": "^6.19.3",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.12",
     "tsx": "^4.23.1",
