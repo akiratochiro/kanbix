@@ -22,4 +22,6 @@ boardRoutes.get(
   boardController.list,
 );
 
+boardRoutes.get("/boards/:id", authenticate, boardController.getById);
+
 boardRoutes.delete("/boards/:id", authenticate, boardController.delete);

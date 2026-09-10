@@ -33,6 +33,19 @@ export const boardController = {
     }
   },
 
+  async getById(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const board = await boardService.getBoardById(req.params.id, req.userId!);
+      res.status(200).json(board);
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async delete(
     req: Request<{ id: string }>,
     res: Response,

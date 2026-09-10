@@ -167,3 +167,71 @@ describe("DELETE /api/boards/:id", () => {
     expect(response.status).toBe(404);
   });
 });
+
+describe("GET /api/boards/:id", () => {
+  async function createBoard(token: string, workspaceId: string) {
+    const response = await request(app)
+      .post(`/api/workspaces/${workspaceId}/boards`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Board de Teste", color: "#10B981" });
+
+    return response.body.id as string;
+  }
+
+  it("deve retornar 200 com o board quando o usuário é membro", async () => {
+    const { token, workspaceId } = await createUserWithWorkspace();
+    const boardId = await createBoard(token, workspaceId);
+
+    const response = await request(app)
+      .get(`/api/boards/${boardId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      id: boardId,
+      name: "Board de Teste",
+      color: "#10B981",
+      workspaceId,
+    });
+  });
+
+  it("deve retornar 401 sem token", async () => {
+    const { token, workspaceId } = await createUserWithWorkspace();
+    const boardId = await createBoard(token, workspaceId);
+
+    const response = await request(app).get(`/api/boards/${boardId}`);
+
+    expect(response.status).toBe(401);
+  });
+
+  it("deve retornar 404 quando o usuário não é membro do workspace do board", async () => {
+    const { token, workspaceId } = await createUserWithWorkspace();
+    const boardId = await createBoard(token, workspaceId);
+
+    await request(app).post("/api/users").send({
+      name: "Estranho",
+      email: "estranho@example.com",
+      password: "senha12345",
+    });
+    const outsider = await request(app).post("/api/login").send({
+      email: "estranho@example.com",
+      password: "senha12345",
+    });
+
+    const response = await request(app)
+      .get(`/api/boards/${boardId}`)
+      .set("Authorization", `Bearer ${outsider.body.token}`);
+
+    expect(response.status).toBe(404);
+  });
+
+  it("deve retornar 404 quando o board não existe", async () => {
+    const { token } = await createUserWithWorkspace();
+
+    const response = await request(app)
+      .get("/api/boards/00000000-0000-0000-0000-000000000000")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+  });
+});
