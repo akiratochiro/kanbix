@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { useWorkspaces } from "@/hooks/use-workspaces";
 import { useBoards } from "@/hooks/use-boards";
+import { CreateBoardDialog } from "./create-board-dialog";
 
 export default function WorkspaceDetailPage() {
   const { id: workspaceId } = useParams<{ id: string }>();
@@ -60,7 +61,17 @@ export default function WorkspaceDetailPage() {
 
       {workspacesQuery.isSuccess && workspace && (
         <section>
-          <h2 className="mb-3 text-lg font-medium">Quadros</h2>
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <h2 className="text-lg font-medium">Quadros</h2>
+            <CreateBoardDialog
+              workspaceId={workspace!.id}
+              trigger={
+                <Button size="sm" variant="outline">
+                  Novo quadro
+                </Button>
+              }
+            />
+          </div>
 
           {boards.isPending ? (
             <BoardsSkeleton />
@@ -70,7 +81,7 @@ export default function WorkspaceDetailPage() {
               isRetrying={boards.isFetching}
             />
           ) : boards.data.length === 0 ? (
-            <BoardsEmpty />
+            <BoardsEmpty workspaceId={workspace!.id} />
           ) : (
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {boards.data.map((board) => (
@@ -135,10 +146,16 @@ function BoardsError({
   );
 }
 
-function BoardsEmpty() {
+function BoardsEmpty({ workspaceId }: { workspaceId: string }) {
   return (
-    <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-      Este workspace ainda não tem quadros.
+    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8 text-center">
+      <p className="text-sm text-muted-foreground">
+        Este workspace ainda não tem quadros.
+      </p>
+      <CreateBoardDialog
+        workspaceId={workspaceId}
+        trigger={<Button variant="outline">Criar quadro</Button>}
+      />
     </div>
   );
 }

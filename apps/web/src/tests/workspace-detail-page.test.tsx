@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
+import { renderWithProviders } from "./test-utils";
 import userEvent from "@testing-library/user-event";
 import type { Board, WorkspaceWithRole } from "@kanbix/shared-types";
 import WorkspaceDetailPage from "@/app/(protected)/workspaces/[id]/page";
@@ -60,7 +61,7 @@ describe("WorkspaceDetailPage", () => {
     });
     mockUseBoards.mockReturnValue({ isPending: true, isError: false });
 
-    render(<WorkspaceDetailPage />);
+    renderWithProviders(<WorkspaceDetailPage />);
 
     expect(
       screen.queryByRole("heading", { level: 2, name: /quadros/i })
@@ -71,7 +72,7 @@ describe("WorkspaceDetailPage", () => {
     mockUseWorkspaces.mockReturnValue(workspacesLoaded([workspace()]));
     mockUseBoards.mockReturnValue({ isPending: true, isError: false });
 
-    render(<WorkspaceDetailPage />);
+    renderWithProviders(<WorkspaceDetailPage />);
 
     expect(
       screen.getByRole("heading", { name: "Time de Produto" })
@@ -90,7 +91,7 @@ describe("WorkspaceDetailPage", () => {
       ])
     );
 
-    render(<WorkspaceDetailPage />);
+    renderWithProviders(<WorkspaceDetailPage />);
 
     expect(screen.getByText("Sprint 1")).toBeInTheDocument();
     expect(screen.getByText("Backlog")).toBeInTheDocument();
@@ -100,7 +101,7 @@ describe("WorkspaceDetailPage", () => {
     mockUseWorkspaces.mockReturnValue(workspacesLoaded([workspace()]));
     mockUseBoards.mockReturnValue(boardsLoaded([]));
 
-    render(<WorkspaceDetailPage />);
+    renderWithProviders(<WorkspaceDetailPage />);
 
     expect(
       screen.getByText(/este workspace ainda não tem quadros/i)
@@ -117,7 +118,7 @@ describe("WorkspaceDetailPage", () => {
       refetch,
     });
 
-    render(<WorkspaceDetailPage />);
+    renderWithProviders(<WorkspaceDetailPage />);
 
     await userEvent.click(
       screen.getByRole("button", { name: /tentar de novo/i })
@@ -131,7 +132,7 @@ describe("WorkspaceDetailPage", () => {
     );
     mockUseBoards.mockReturnValue({ isPending: true, isError: false });
 
-    render(<WorkspaceDetailPage />);
+    renderWithProviders(<WorkspaceDetailPage />);
 
     expect(screen.getByText(/workspace não encontrado/i)).toBeInTheDocument();
     expect(
