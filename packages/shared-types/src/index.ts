@@ -17,6 +17,15 @@ export interface WorkspaceWithRole extends Workspace {
   role: "OWNER" | "ADMIN" | "MEMBER";
 }
 
+export interface WorkspaceMember {
+  userId: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+  role: "OWNER" | "ADMIN" | "MEMBER";
+  joinedAt: string;
+}
+
 export interface Board {
   id: string;
   name: string;

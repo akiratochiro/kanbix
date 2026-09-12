@@ -6,6 +6,7 @@ import { errorHandler } from "./middlewares/error-handler";
 import { boardRoutes } from "./routes/board.routes";
 import { cardRoutes } from "./routes/card.routes";
 import { listRoutes } from "./routes/list.routes";
+import { memberRoutes } from "./routes/member.routes";
 
 export const app = express();
 
@@ -27,5 +28,6 @@ app.use("/api", workspaceRoutes);
 app.use("/api", boardRoutes);
 app.use("/api", listRoutes);
 app.use("/api", cardRoutes);
+app.use("/api", memberRoutes);
 
 app.use(errorHandler);

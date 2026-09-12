@@ -68,3 +68,21 @@ export class CardNotFoundError extends AppError {
     super("Card não encontrado.", 404);
   }
 }
+
+export class MemberAlreadyExistsError extends AppError {
+  constructor() {
+    super("Este usuário já é membro do workspace.", 409);
+  }
+}
+
+export class MemberNotFoundError extends AppError {
+  constructor() {
+    super("Membro não encontrado.", 404);
+  }
+}
+
+export class LastOwnerError extends AppError {
+  constructor() {
+    super("O workspace precisa de pelo menos um Dono.", 409);
+  }
+}
