@@ -2,6 +2,7 @@ import { screen } from "@testing-library/react";
 import { renderWithProviders } from "./test-utils";
 import userEvent from "@testing-library/user-event";
 import type { Board, WorkspaceWithRole } from "@kanbix/shared-types";
+import { ApiError } from "@/lib/api-client";
 import WorkspaceDetailPage from "@/app/(protected)/workspaces/[id]/page";
 
 jest.mock("next/navigation", () => ({
@@ -15,6 +16,11 @@ jest.mock("@/hooks/use-workspaces", () => ({
 }));
 jest.mock("@/hooks/use-boards", () => ({
   useBoards: () => mockUseBoards(),
+}));
+
+const mockUseDeleteBoard = jest.fn();
+jest.mock("@/hooks/use-delete-board", () => ({
+  useDeleteBoard: () => mockUseDeleteBoard(),
 }));
 
 const workspace = (over: Partial<WorkspaceWithRole> = {}): WorkspaceWithRole => ({
@@ -53,6 +59,15 @@ const boardsLoaded = (data: Board[]) => ({
 });
 
 describe("WorkspaceDetailPage", () => {
+  beforeEach(() => {
+    mockUseDeleteBoard.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+      error: null,
+      reset: jest.fn(),
+    });
+  });
+
   it("não mostra a seção de quadros enquanto o workspace carrega", () => {
     mockUseWorkspaces.mockReturnValue({
       isPending: true,
@@ -124,6 +139,50 @@ describe("WorkspaceDetailPage", () => {
       screen.getByRole("button", { name: /tentar de novo/i })
     );
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("exclui um quadro após confirmar", async () => {
+    const mutate = jest.fn();
+    mockUseDeleteBoard.mockReturnValue({
+      mutate,
+      isPending: false,
+      error: null,
+      reset: jest.fn(),
+    });
+    mockUseWorkspaces.mockReturnValue(workspacesLoaded([workspace()]));
+    mockUseBoards.mockReturnValue(boardsLoaded([board({ id: "b1", name: "Sprint 1" })]));
+
+    renderWithProviders(<WorkspaceDetailPage />);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /excluir quadro sprint 1/i })
+    );
+    await userEvent.click(
+      await screen.findByRole("button", { name: /^excluir$/i })
+    );
+
+    expect(mutate).toHaveBeenCalledWith("b1", expect.anything());
+  });
+
+  it("mostra a mensagem do servidor quando a exclusão do quadro falha", async () => {
+    mockUseDeleteBoard.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+      error: new ApiError("Só o dono pode excluir este quadro.", 403),
+      reset: jest.fn(),
+    });
+    mockUseWorkspaces.mockReturnValue(workspacesLoaded([workspace()]));
+    mockUseBoards.mockReturnValue(boardsLoaded([board({ id: "b1", name: "Sprint 1" })]));
+
+    renderWithProviders(<WorkspaceDetailPage />);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /excluir quadro sprint 1/i })
+    );
+
+    expect(
+      await screen.findByText(/só o dono pode excluir este quadro/i)
+    ).toBeInTheDocument();
   });
 
   it("mostra 'não encontrado' quando o workspace não está na lista", () => {

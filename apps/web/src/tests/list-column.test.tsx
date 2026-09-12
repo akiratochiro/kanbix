@@ -12,6 +12,11 @@ jest.mock("next/navigation", () => ({
   useParams: () => ({ id: "b1" }),
 }));
 
+const mockDeleteListMutate = jest.fn();
+jest.mock("@/hooks/use-delete-list", () => ({
+  useDeleteList: () => ({ mutate: mockDeleteListMutate, isPending: false }),
+}));
+
 const list: List = {
   id: "l1",
   name: "A fazer",
@@ -99,5 +104,20 @@ describe("ListColumn", () => {
       screen.getByRole("button", { name: /tentar de novo/i })
     );
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("exclui a lista após confirmar", async () => {
+    mockUseCards.mockReturnValue(cardsLoaded([]));
+
+    render(<ListColumn list={list} />);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /excluir lista a fazer/i })
+    );
+    await userEvent.click(
+      await screen.findByRole("button", { name: /^excluir$/i })
+    );
+
+    expect(mockDeleteListMutate).toHaveBeenCalledWith("l1");
   });
 });

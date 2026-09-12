@@ -14,4 +14,7 @@ export const workspaceService = {
 
   create: (payload: CreateWorkspacePayload) =>
     apiClient.post<Workspace>("/workspaces", payload),
+
+  remove: (workspaceId: string) =>
+    apiClient.delete<void>(`/workspaces/${workspaceId}`),
 };

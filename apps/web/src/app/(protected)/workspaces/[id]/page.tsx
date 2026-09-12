@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import type { Board } from "@kanbix/shared-types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -11,8 +13,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { ApiError } from "@/lib/api-client";
 import { useWorkspaces } from "@/hooks/use-workspaces";
 import { useBoards } from "@/hooks/use-boards";
+import { useDeleteBoard } from "@/hooks/use-delete-board";
 import { CreateBoardDialog } from "./create-board-dialog";
 
 export default function WorkspaceDetailPage() {
@@ -95,7 +108,13 @@ export default function WorkspaceDetailPage() {
                       style={{ borderTopColor: board.color, borderTopWidth: 3 }}
                     >
                       <CardHeader>
-                        <CardTitle>{board.name}</CardTitle>
+                        <div className="flex items-start justify-between gap-2">
+                          <CardTitle>{board.name}</CardTitle>
+                          <DeleteBoardButton
+                            board={board}
+                            workspaceId={workspaceId}
+                          />
+                        </div>
                         {board.description && (
                           <CardDescription>{board.description}</CardDescription>
                         )}
@@ -109,6 +128,78 @@ export default function WorkspaceDetailPage() {
         </section>
       )}
     </main>
+  );
+}
+
+function DeleteBoardButton({
+  board,
+  workspaceId,
+}: {
+  board: Board;
+  workspaceId: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const deleteBoard = useDeleteBoard(workspaceId);
+
+  function handleOpenChange(next: boolean) {
+    setOpen(next);
+    if (!next) deleteBoard.reset();
+  }
+
+  function handleDelete() {
+    deleteBoard.mutate(board.id, { onSuccess: () => setOpen(false) });
+  }
+
+  const serverError = deleteBoard.error
+    ? deleteBoard.error instanceof ApiError
+      ? deleteBoard.error.message
+      : "Não foi possível excluir o quadro."
+    : null;
+
+  return (
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
+      {/* Sem AlertDialogTrigger: precisamos de preventDefault aqui (pro
+          Link do card não navegar), e isso faria o Radix pular a própria
+          lógica de abrir o diálogo — por isso o open é só nosso. */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-6 shrink-0 text-muted-foreground hover:text-destructive"
+        aria-label={`Excluir quadro ${board.name}`}
+        onClick={(event) => {
+          event.preventDefault();
+          setOpen(true);
+        }}
+      >
+        <Trash2 className="size-3.5" />
+      </Button>
+      <AlertDialogContent onClick={(event) => event.stopPropagation()}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            Excluir &quot;{board.name}&quot;?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Todas as listas e cartões dentro deste quadro também serão
+            excluídos. Essa ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        {serverError && (
+          <p className="text-sm font-medium text-destructive">
+            {serverError}
+          </p>
+        )}
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={deleteBoard.isPending}
+          >
+            {deleteBoard.isPending ? "Excluindo..." : "Excluir"}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import type { WorkspaceWithRole } from "@kanbix/shared-types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +14,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspaces } from "@/hooks/use-workspaces";
+import { useDeleteWorkspace } from "@/hooks/use-delete-workspace";
 import { CreateWorkspaceDialog } from "./create-workspace-dialog";
 
 const roleLabels: Record<WorkspaceWithRole["role"], string> = {
@@ -69,9 +82,14 @@ export default function WorkspacesPage() {
                     <CardHeader>
                       <div className="flex items-start justify-between gap-2">
                         <CardTitle>{workspace.name}</CardTitle>
-                        <Badge variant="secondary">
-                          {roleLabels[workspace.role]}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary">
+                            {roleLabels[workspace.role]}
+                          </Badge>
+                          {workspace.role === "OWNER" && (
+                            <DeleteWorkspaceButton workspace={workspace} />
+                          )}
+                        </div>
                       </div>
                       {workspace.description && (
                         <CardDescription>
@@ -127,6 +145,55 @@ function WorkspacesError({
         {isRetrying ? "Tentando..." : "Tentar de novo"}
       </Button>
     </div>
+  );
+}
+
+function DeleteWorkspaceButton({
+  workspace,
+}: {
+  workspace: WorkspaceWithRole;
+}) {
+  const [open, setOpen] = useState(false);
+  const deleteWorkspace = useDeleteWorkspace();
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      {/* Sem AlertDialogTrigger: o Link ao redor do card precisa que a
+          gente chame preventDefault aqui, e isso faria o Radix pular a
+          própria lógica de abrir o diálogo (composeEventHandlers só
+          roda o handler dele se defaultPrevented ainda for false). */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-6 text-muted-foreground hover:text-destructive"
+        aria-label={`Excluir workspace ${workspace.name}`}
+        onClick={(event) => {
+          event.preventDefault();
+          setOpen(true);
+        }}
+      >
+        <Trash2 className="size-3.5" />
+      </Button>
+      <AlertDialogContent onClick={(event) => event.stopPropagation()}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            Excluir &quot;{workspace.name}&quot;?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Todos os quadros, listas e cartões dentro deste workspace também
+            serão excluídos. Essa ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => deleteWorkspace.mutate(workspace.id)}
+          >
+            Excluir
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

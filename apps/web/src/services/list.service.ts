@@ -10,4 +10,6 @@ export const listService = {
 
   create: (boardId: string, name: string) =>
     apiClient.post<List>(`/boards/${boardId}/lists`, { name }),
+
+  remove: (listId: string) => apiClient.delete<void>(`/lists/${listId}`),
 };
