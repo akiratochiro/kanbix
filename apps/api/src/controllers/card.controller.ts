@@ -20,6 +20,15 @@ export const cardController = {
     }
   },
 
+  async getById(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const card = await cardService.getCardById(req.params.id, req.userId!);
+      res.status(200).json(card);
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async list(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
     try {
       const cards = await cardService.getCardsByListId(req.params.id, req.userId!);

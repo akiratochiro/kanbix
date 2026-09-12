@@ -66,6 +66,26 @@ describe("cardService", () => {
     });
   });
 
+  describe("getCardById", () => {
+    it("deve retornar o card quando ele existe e o usuário tem acesso", async () => {
+      mockedCardRepository.findById.mockResolvedValue(fakeCard);
+      mockedListRepository.findById.mockResolvedValue(fakeList);
+
+      const result = await cardService.getCardById("card-uuid", "user-uuid");
+
+      expect(mockedAssertBoardMembership).toHaveBeenCalledWith("board-uuid", "user-uuid");
+      expect(result.id).toBe("card-uuid");
+    });
+
+    it("deve lançar CardNotFoundError quando o card não existe", async () => {
+      mockedCardRepository.findById.mockResolvedValue(null);
+
+      await expect(cardService.getCardById("card-uuid", "user-uuid")).rejects.toThrow(
+        CardNotFoundError
+      );
+    });
+  });
+
   describe("updateCard", () => {
     it("deve atualizar o card sem mudar de list", async () => {
       mockedCardRepository.findById.mockResolvedValue(fakeCard);

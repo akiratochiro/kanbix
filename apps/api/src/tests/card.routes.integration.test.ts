@@ -81,6 +81,60 @@ describe("POST /api/lists/:id/cards", () => {
   });
 });
 
+describe("GET /api/cards/:id", () => {
+  it("deve retornar o card quando ele existe e o usuário tem acesso", async () => {
+    const { token, listId } = await createUserWithList();
+
+    const createResponse = await request(app)
+      .post(`/api/lists/${listId}/cards`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "Minha Tarefa" });
+
+    const response = await request(app)
+      .get(`/api/cards/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ title: "Minha Tarefa", listId });
+  });
+
+  it("deve retornar 404 quando o card não existe", async () => {
+    const { token } = await createUserWithList();
+
+    const response = await request(app)
+      .get("/api/cards/00000000-0000-0000-0000-000000000000")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(404);
+  });
+
+  it("deve retornar 404 quando o usuário não é membro do workspace do board", async () => {
+    const { token, listId } = await createUserWithList();
+
+    const createResponse = await request(app)
+      .post(`/api/lists/${listId}/cards`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "Minha Tarefa" });
+
+    await request(app).post("/api/users").send({
+      name: "Outro Usuário",
+      email: "outro@example.com",
+      password: "senha12345",
+    });
+    const otherLogin = await request(app).post("/api/login").send({
+      email: "outro@example.com",
+      password: "senha12345",
+    });
+    const otherToken = otherLogin.body.token as string;
+
+    const response = await request(app)
+      .get(`/api/cards/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${otherToken}`);
+
+    expect(response.status).toBe(404);
+  });
+});
+
 describe("PATCH /api/cards/:id", () => {
   it("deve atualizar o título e a priority do card", async () => {
     const { token, listId } = await createUserWithList();

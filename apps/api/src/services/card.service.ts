@@ -57,6 +57,16 @@ export const cardService = {
     return toDTO(card);
   },
 
+  async getCardById(cardId: string, userId: string): Promise<Card> {
+    const card = await cardRepository.findById(cardId);
+    if (!card) throw new CardNotFoundError();
+
+    const list = await getListOrThrow(card.listId);
+    await assertBoardMembership(list.boardId, userId);
+
+    return toDTO(card);
+  },
+
   async getCardsByListId(listId: string, userId: string): Promise<Card[]> {
     const list = await getListOrThrow(listId);
     await assertBoardMembership(list.boardId, userId);
