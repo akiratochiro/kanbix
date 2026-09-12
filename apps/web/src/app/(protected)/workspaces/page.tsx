@@ -25,15 +25,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/lib/auth-context";
+import { WORKSPACE_ROLE_LABELS } from "@/lib/workspace-roles";
 import { useWorkspaces } from "@/hooks/use-workspaces";
 import { useDeleteWorkspace } from "@/hooks/use-delete-workspace";
 import { CreateWorkspaceDialog } from "./create-workspace-dialog";
-
-const roleLabels: Record<WorkspaceWithRole["role"], string> = {
-  OWNER: "Dono",
-  ADMIN: "Admin",
-  MEMBER: "Membro",
-};
 
 export default function WorkspacesPage() {
   const router = useRouter();
@@ -84,7 +79,7 @@ export default function WorkspacesPage() {
                         <CardTitle>{workspace.name}</CardTitle>
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary">
-                            {roleLabels[workspace.role]}
+                            {WORKSPACE_ROLE_LABELS[workspace.role]}
                           </Badge>
                           {workspace.role === "OWNER" && (
                             <DeleteWorkspaceButton workspace={workspace} />

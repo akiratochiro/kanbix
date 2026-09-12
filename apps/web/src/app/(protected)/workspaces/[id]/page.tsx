@@ -23,13 +23,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ApiError } from "@/lib/api-client";
+import { useAuth } from "@/lib/auth-context";
 import { useWorkspaces } from "@/hooks/use-workspaces";
 import { useBoards } from "@/hooks/use-boards";
 import { useDeleteBoard } from "@/hooks/use-delete-board";
 import { CreateBoardDialog } from "./create-board-dialog";
+import { MembersSection } from "./members-section";
 
 export default function WorkspaceDetailPage() {
   const { id: workspaceId } = useParams<{ id: string }>();
+  const { user } = useAuth();
 
   const workspacesQuery = useWorkspaces();
   const workspace = workspacesQuery.data?.find((w) => w.id === workspaceId);
@@ -126,6 +129,14 @@ export default function WorkspaceDetailPage() {
             </ul>
           )}
         </section>
+      )}
+
+      {workspacesQuery.isSuccess && workspace && user && (
+        <MembersSection
+          workspaceId={workspace.id}
+          currentUserId={user.id}
+          currentUserRole={workspace.role}
+        />
       )}
     </main>
   );

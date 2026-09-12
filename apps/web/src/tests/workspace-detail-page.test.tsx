@@ -23,6 +23,23 @@ jest.mock("@/hooks/use-delete-board", () => ({
   useDeleteBoard: () => mockUseDeleteBoard(),
 }));
 
+jest.mock("@/lib/auth-context", () => ({
+  useAuth: () => ({
+    user: {
+      id: "u1",
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      avatarUrl: null,
+      createdAt: "2026-01-01T00:00:00.000Z",
+    },
+  }),
+}));
+
+// A seção de membros tem sua própria suíte de testes (members-section.test.tsx).
+jest.mock("@/app/(protected)/workspaces/[id]/members-section", () => ({
+  MembersSection: () => null,
+}));
+
 const workspace = (over: Partial<WorkspaceWithRole> = {}): WorkspaceWithRole => ({
   id: "w1",
   name: "Time de Produto",
