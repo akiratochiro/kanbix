@@ -23,8 +23,24 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+function subscribeNever() {
+  return () => {};
+}
+
+/**
+ * `false` na primeira renderização do cliente (igual ao servidor, sem
+ * mismatch de hidratação) e `true` a partir da própria correção que o
+ * React já faz para `useSyncExternalStore` logo em seguida. Serve pra
+ * saber se o `token` abaixo já é definitivo ou ainda pode ser o eco
+ * (sempre `null`) do `getServerSnapshot`.
+ */
+function useIsHydrated() {
+  return useSyncExternalStore(subscribeNever, () => true, () => false);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
+  const isHydrated = useIsHydrated();
 
   const token = useSyncExternalStore(
     tokenStore.subscribe,
@@ -65,7 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.removeQueries({ queryKey: authKeys.me() });
   }, [queryClient]);
 
-  const isLoading = token !== null && query.isPending;
+  // Enquanto não hidratou de verdade, `token` pode ainda ser o eco do
+  // getServerSnapshot (sempre null) — não dá pra confiar que "sem token"
+  // já significa "deslogado" nesse instante.
+  const isLoading = !isHydrated || (token !== null && query.isPending);
 
   return (
     <AuthContext.Provider
