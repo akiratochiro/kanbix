@@ -51,6 +51,7 @@ export interface Card {
   position: number;
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   dueDate: string | null;
+  completedAt: string | null;
   listId: string;
   assigneeId: string | null;
   createdAt: string;

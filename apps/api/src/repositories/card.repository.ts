@@ -15,6 +15,7 @@ export interface UpdateCardData {
   description?: string;
   priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   dueDate?: Date | null;
+  completedAt?: Date | null;
   assigneeId?: string | null;
   listId?: string;
   position?: number;

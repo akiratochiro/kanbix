@@ -153,6 +153,32 @@ describe("PATCH /api/cards/:id", () => {
     expect(response.body).toMatchObject({ title: "Atualizado", priority: "URGENT" });
   });
 
+  it("deve marcar e depois reabrir um card", async () => {
+    const { token, listId } = await createUserWithList();
+
+    const createResponse = await request(app)
+      .post(`/api/lists/${listId}/cards`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "Minha Tarefa" });
+
+    const completedAt = "2026-03-10T12:00:00.000Z";
+    const completeResponse = await request(app)
+      .patch(`/api/cards/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ completedAt });
+
+    expect(completeResponse.status).toBe(200);
+    expect(completeResponse.body.completedAt).toBe(completedAt);
+
+    const reopenResponse = await request(app)
+      .patch(`/api/cards/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ completedAt: null });
+
+    expect(reopenResponse.status).toBe(200);
+    expect(reopenResponse.body.completedAt).toBeNull();
+  });
+
   it("deve mover o card para outra list", async () => {
     const { token, listId } = await createUserWithList();
 

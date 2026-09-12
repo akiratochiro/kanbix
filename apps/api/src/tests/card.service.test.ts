@@ -30,6 +30,7 @@ const fakeCard = {
   position: 0,
   priority: "MEDIUM",
   dueDate: null,
+  completedAt: null,
   listId: "list-uuid",
   assigneeId: null,
   createdAt: new Date(),
@@ -87,6 +88,45 @@ describe("cardService", () => {
   });
 
   describe("updateCard", () => {
+    it("deve marcar o card como concluído", async () => {
+      mockedCardRepository.findById.mockResolvedValue(fakeCard);
+      mockedListRepository.findById.mockResolvedValue(fakeList);
+      const completedAt = "2026-03-10T12:00:00.000Z";
+      mockedCardRepository.update.mockResolvedValue({
+        ...fakeCard,
+        completedAt: new Date(completedAt),
+      });
+
+      const result = await cardService.updateCard("card-uuid", "user-uuid", {
+        completedAt,
+      });
+
+      expect(mockedCardRepository.update).toHaveBeenCalledWith(
+        "card-uuid",
+        expect.objectContaining({ completedAt: new Date(completedAt) })
+      );
+      expect(result.completedAt).toBe(completedAt);
+    });
+
+    it("deve reabrir o card quando completedAt é enviado como null", async () => {
+      mockedCardRepository.findById.mockResolvedValue({
+        ...fakeCard,
+        completedAt: new Date("2026-03-10T12:00:00.000Z"),
+      });
+      mockedListRepository.findById.mockResolvedValue(fakeList);
+      mockedCardRepository.update.mockResolvedValue(fakeCard);
+
+      const result = await cardService.updateCard("card-uuid", "user-uuid", {
+        completedAt: null,
+      });
+
+      expect(mockedCardRepository.update).toHaveBeenCalledWith(
+        "card-uuid",
+        expect.objectContaining({ completedAt: null })
+      );
+      expect(result.completedAt).toBeNull();
+    });
+
     it("deve atualizar o card sem mudar de list", async () => {
       mockedCardRepository.findById.mockResolvedValue(fakeCard);
       mockedListRepository.findById.mockResolvedValue(fakeList);

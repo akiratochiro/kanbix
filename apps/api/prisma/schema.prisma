@@ -111,6 +111,7 @@ model Card {
   position    Int
   priority    CardPriority @default(MEDIUM)
   dueDate     DateTime?
+  completedAt DateTime?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 

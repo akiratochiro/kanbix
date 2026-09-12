@@ -17,13 +17,14 @@ interface UpdateCardInput {
   description?: string;
   priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   dueDate?: string | null;
+  completedAt?: string | null;
   assigneeId?: string | null;
   listId?: string;
 }
 
 function toDTO(card: {
   id: string; title: string; description: string | null; position: number;
-  priority: string; dueDate: Date | null; listId: string; assigneeId: string | null; createdAt: Date;
+  priority: string; dueDate: Date | null; completedAt: Date | null; listId: string; assigneeId: string | null; createdAt: Date;
 }): Card {
   return {
     id: card.id,
@@ -32,6 +33,7 @@ function toDTO(card: {
     position: card.position,
     priority: card.priority as Card["priority"],
     dueDate: card.dueDate ? card.dueDate.toISOString() : null,
+    completedAt: card.completedAt ? card.completedAt.toISOString() : null,
     listId: card.listId,
     assigneeId: card.assigneeId,
     createdAt: card.createdAt.toISOString(),
@@ -90,6 +92,12 @@ export const cardService = {
     const updated = await cardRepository.update(cardId, {
       ...input,
       dueDate: input.dueDate === undefined ? undefined : input.dueDate ? new Date(input.dueDate) : null,
+      completedAt:
+        input.completedAt === undefined
+          ? undefined
+          : input.completedAt
+            ? new Date(input.completedAt)
+            : null,
     });
     return toDTO(updated);
   },
