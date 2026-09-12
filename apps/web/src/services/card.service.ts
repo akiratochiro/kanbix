@@ -16,6 +16,8 @@ export interface UpdateCardPayload {
   description?: string;
   priority?: Card["priority"];
   dueDate?: string | null;
+  completedAt?: string | null;
+  assigneeId?: string | null;
 }
 
 export const cardService = {

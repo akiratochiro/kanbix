@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBoard } from "@/hooks/use-board";
@@ -18,18 +18,27 @@ export default function BoardPage() {
   return (
     <main className="flex min-h-screen flex-col gap-6 p-8">
       <div>
-        <Button variant="ghost" size="sm" asChild className="mb-2 -ml-2">
-          <Link
-            href={
-              board.data
-                ? `/workspaces/${board.data.workspaceId}`
-                : "/workspaces"
-            }
-          >
-            <ArrowLeft />
-            Voltar
-          </Link>
-        </Button>
+        <div className="mb-2 -ml-2 flex items-center justify-between">
+          <Button variant="ghost" size="sm" asChild>
+            <Link
+              href={
+                board.data
+                  ? `/workspaces/${board.data.workspaceId}`
+                  : "/workspaces"
+              }
+            >
+              <ArrowLeft />
+              Voltar
+            </Link>
+          </Button>
+
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/boards/${boardId}/dashboard`}>
+              <LayoutDashboard />
+              Dashboard
+            </Link>
+          </Button>
+        </div>
 
         {board.isPending ? (
           <Skeleton className="h-8 w-56" />

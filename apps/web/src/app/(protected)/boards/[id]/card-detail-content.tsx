@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle2, Circle } from "lucide-react";
 import type { Card } from "@kanbix/shared-types";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,11 +40,16 @@ import { ApiError } from "@/lib/api-client";
 import { useCard } from "@/hooks/use-card";
 import { useUpdateCard } from "@/hooks/use-update-card";
 import { useDeleteCard } from "@/hooks/use-delete-card";
+import { useBoard } from "@/hooks/use-board";
+import { useMembers } from "@/hooks/use-members";
 import {
   CARD_PRIORITIES,
   cardDetailSchema,
   dueDateFromCard,
   dueDateToPayload,
+  assigneeIdFromCard,
+  assigneeIdToPayload,
+  UNASSIGNED,
   type CardDetailFormData,
 } from "./card-detail-schema";
 
@@ -85,7 +91,10 @@ export function CardDetailContent({
 
 function CardDetailForm({ card, boardId }: { card: Card; boardId: string }) {
   const router = useRouter();
+  const board = useBoard(boardId);
+  const members = useMembers(board.data?.workspaceId ?? "");
   const updateCard = useUpdateCard(card.id);
+  const toggleComplete = useUpdateCard(card.id);
   const deleteCard = useDeleteCard(card.id, card.listId);
 
   const form = useForm<CardDetailFormData>({
@@ -95,6 +104,7 @@ function CardDetailForm({ card, boardId }: { card: Card; boardId: string }) {
       description: card.description ?? "",
       priority: card.priority,
       dueDate: dueDateFromCard(card.dueDate),
+      assigneeId: assigneeIdFromCard(card.assigneeId),
     },
   });
 
@@ -104,6 +114,13 @@ function CardDetailForm({ card, boardId }: { card: Card; boardId: string }) {
       description: data.description,
       priority: data.priority,
       dueDate: dueDateToPayload(data.dueDate),
+      assigneeId: assigneeIdToPayload(data.assigneeId),
+    });
+  }
+
+  function handleToggleComplete() {
+    toggleComplete.mutate({
+      completedAt: card.completedAt ? null : new Date().toISOString(),
     });
   }
 
@@ -126,6 +143,22 @@ function CardDetailForm({ card, boardId }: { card: Card; boardId: string }) {
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4"
       >
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleToggleComplete}
+          disabled={toggleComplete.isPending}
+          className={card.completedAt ? "border-green-600 text-green-600" : ""}
+        >
+          {card.completedAt ? (
+            <CheckCircle2 className="text-green-600" />
+          ) : (
+            <Circle />
+          )}
+          {card.completedAt ? "Concluído" : "Marcar como concluído"}
+        </Button>
+
         <FormField
           control={form.control}
           name="title"
@@ -194,6 +227,32 @@ function CardDetailForm({ card, boardId }: { card: Card; boardId: string }) {
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="assigneeId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Responsável</FormLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger disabled={members.isPending}>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value={UNASSIGNED}>Sem responsável</SelectItem>
+                  {members.data?.map((member) => (
+                    <SelectItem key={member.userId} value={member.userId}>
+                      {member.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {serverError && (
           <p className="text-sm font-medium text-destructive">

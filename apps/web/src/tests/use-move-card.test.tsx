@@ -19,6 +19,7 @@ const card = (id: string, listId: string, position: number): Card => ({
   position,
   priority: "LOW",
   dueDate: null,
+  completedAt: null,
   listId,
   assigneeId: null,
   createdAt: "2026-01-01T00:00:00.000Z",

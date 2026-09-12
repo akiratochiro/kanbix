@@ -7,6 +7,8 @@ export const CARD_PRIORITIES = [
   { value: "URGENT", label: "Urgente" },
 ] as const;
 
+export const UNASSIGNED = "UNASSIGNED";
+
 export const cardDetailSchema = z.object({
   title: z
     .string()
@@ -19,9 +21,18 @@ export const cardDetailSchema = z.object({
     .max(2000, "A descrição deve ter no máximo 2000 caracteres."),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]),
   dueDate: z.string(),
+  assigneeId: z.string(),
 });
 
 export type CardDetailFormData = z.infer<typeof cardDetailSchema>;
+
+export function assigneeIdToPayload(value: string): string | null {
+  return value === UNASSIGNED ? null : value;
+}
+
+export function assigneeIdFromCard(assigneeId: string | null): string {
+  return assigneeId ?? UNASSIGNED;
+}
 
 /**
  * O input type="date" só lida com "YYYY-MM-DD". A API guarda a data-limite

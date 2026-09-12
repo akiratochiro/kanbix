@@ -44,6 +44,15 @@ export interface List {
   createdAt: string;
 }
 
+export interface BoardDashboard {
+  totalCards: number;
+  completedCards: number;
+  overdueCards: number;
+  completionRate: number;
+  cardsByAssignee: { assigneeId: string | null; count: number }[];
+  completedByDay: { date: string; count: number }[];
+}
+
 export interface Card {
   id: string;
   title: string;

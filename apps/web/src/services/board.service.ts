@@ -1,4 +1,4 @@
-import type { Board } from "@kanbix/shared-types";
+import type { Board, BoardDashboard } from "@kanbix/shared-types";
 import { apiClient } from "@/lib/api-client";
 
 export interface CreateBoardPayload {
@@ -20,4 +20,7 @@ export const boardService = {
     apiClient.post<Board>(`/workspaces/${workspaceId}/boards`, payload),
 
   remove: (boardId: string) => apiClient.delete<void>(`/boards/${boardId}`),
+
+  getDashboard: (boardId: string) =>
+    apiClient.get<BoardDashboard>(`/boards/${boardId}/dashboard`),
 };

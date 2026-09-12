@@ -32,6 +32,7 @@ const card = (over: Partial<Card>): Card => ({
   position: 0,
   priority: "LOW",
   dueDate: null,
+  completedAt: null,
   listId: "l1",
   assigneeId: null,
   createdAt: "2026-01-01T00:00:00.000Z",

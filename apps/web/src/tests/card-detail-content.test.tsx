@@ -15,6 +15,15 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
+jest.mock("@/hooks/use-board", () => ({
+  useBoard: () => ({ data: { workspaceId: "w1" }, isPending: false }),
+}));
+
+const mockUseMembers = jest.fn();
+jest.mock("@/hooks/use-members", () => ({
+  useMembers: () => mockUseMembers(),
+}));
+
 const mockedGetById = cardService.getById as jest.Mock;
 const mockedUpdate = cardService.update as jest.Mock;
 const mockedRemove = cardService.remove as jest.Mock;
@@ -26,6 +35,7 @@ const card: Card = {
   position: 0,
   priority: "MEDIUM",
   dueDate: "2026-03-10T00:00:00.000Z",
+  completedAt: null,
   listId: "l1",
   assigneeId: null,
   createdAt: "2026-01-01T00:00:00.000Z",
@@ -40,6 +50,7 @@ function setup(cardId = "c1", boardId = "b1") {
 describe("CardDetailContent", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseMembers.mockReturnValue({ data: [], isPending: false });
   });
 
   it("mostra o skeleton enquanto carrega", () => {
@@ -75,7 +86,9 @@ describe("CardDetailContent", () => {
       "Olhar os testes."
     );
     expect(screen.getByLabelText(/data-limite/i)).toHaveValue("2026-03-10");
-    expect(screen.getByRole("combobox")).toHaveTextContent("Média");
+    const [priorityCombobox, assigneeCombobox] = screen.getAllByRole("combobox");
+    expect(priorityCombobox).toHaveTextContent("Média");
+    expect(assigneeCombobox).toHaveTextContent("Sem responsável");
   });
 
   it("salva as alterações com o payload correto", async () => {
@@ -95,7 +108,67 @@ describe("CardDetailContent", () => {
         description: "Olhar os testes.",
         priority: "MEDIUM",
         dueDate: "2026-03-10T00:00:00.000Z",
+        assigneeId: null,
       })
+    );
+  });
+
+  it("mostra o responsável já atribuído no select", async () => {
+    mockUseMembers.mockReturnValue({
+      data: [
+        {
+          userId: "u2",
+          name: "Ada Lovelace",
+          email: "ada@example.com",
+          avatarUrl: null,
+          role: "MEMBER",
+          joinedAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+      isPending: false,
+    });
+    mockedGetById.mockResolvedValue({ ...card, assigneeId: "u2" });
+
+    setup();
+
+    await screen.findByLabelText(/título/i);
+    const [, assigneeCombobox] = screen.getAllByRole("combobox");
+    expect(assigneeCombobox).toHaveTextContent("Ada Lovelace");
+  });
+
+  // Abrir o dropdown de fato (clicar no trigger e escolher um item) trava
+  // no jsdom — limitação conhecida do Radix Select com user-event, mesma
+  // razão pela qual o drag-and-drop também não é testado aqui (território
+  // de e2e). O payload de envio já é coberto acima com o valor padrão.
+
+  it("marca o card como concluído e permite reabrir", async () => {
+    mockedGetById.mockResolvedValue(card);
+    const completedAt = "2026-03-11T10:00:00.000Z";
+    mockedUpdate.mockResolvedValueOnce({ ...card, completedAt });
+
+    setup();
+
+    await screen.findByLabelText(/título/i);
+    await userEvent.click(
+      screen.getByRole("button", { name: /marcar como concluído/i })
+    );
+
+    await waitFor(() =>
+      expect(mockedUpdate).toHaveBeenCalledWith(
+        "c1",
+        expect.objectContaining({ completedAt: expect.any(String) })
+      )
+    );
+    expect(await screen.findByRole("button", { name: /^concluído$/i })).toBeInTheDocument();
+
+    mockedUpdate.mockResolvedValueOnce({ ...card, completedAt: null });
+    await userEvent.click(screen.getByRole("button", { name: /^concluído$/i }));
+
+    await waitFor(() =>
+      expect(mockedUpdate).toHaveBeenLastCalledWith(
+        "c1",
+        expect.objectContaining({ completedAt: null })
+      )
     );
   });
 

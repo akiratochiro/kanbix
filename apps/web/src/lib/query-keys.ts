@@ -23,6 +23,8 @@ export const boardKeys = {
   listByWorkspace: (workspaceId: string) =>
     [...boardKeys.all, "workspace", workspaceId] as const,
   detail: (boardId: string) => [...boardKeys.all, boardId] as const,
+  dashboard: (boardId: string) =>
+    [...boardKeys.all, boardId, "dashboard"] as const,
 };
 
 export const listKeys = {
