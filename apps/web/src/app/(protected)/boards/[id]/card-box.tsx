@@ -1,3 +1,7 @@
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import type { Card } from "@kanbix/shared-types";
 import { Badge } from "@/components/ui/badge";
 
@@ -24,10 +28,14 @@ function formatDueDate(iso: string) {
 }
 
 export function CardBox({ card }: { card: Card }) {
+  const { id: boardId } = useParams<{ id: string }>();
   const badge = priorityBadge[card.priority];
 
   return (
-    <div className="rounded-md border bg-background p-3 shadow-sm">
+    <Link
+      href={`/boards/${boardId}/cards/${card.id}`}
+      className="block rounded-md border bg-background p-3 text-left shadow-sm transition hover:border-ring"
+    >
       <p className="text-sm">{card.title}</p>
       {(badge || card.dueDate) && (
         <div className="mt-2 flex items-center gap-2">
@@ -39,6 +47,6 @@ export function CardBox({ card }: { card: Card }) {
           )}
         </div>
       )}
-    </div>
+    </Link>
   );
 }

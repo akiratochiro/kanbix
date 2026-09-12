@@ -1,0 +1,131 @@
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { Card } from "@kanbix/shared-types";
+import { renderWithProviders } from "./test-utils";
+import { ApiError } from "@/lib/api-client";
+import { cardService } from "@/services/card.service";
+import { CardDetailContent } from "@/app/(protected)/boards/[id]/card-detail-content";
+
+jest.mock("@/services/card.service", () => ({
+  cardService: { getById: jest.fn(), update: jest.fn(), remove: jest.fn() },
+}));
+
+const mockPush = jest.fn();
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
+const mockedGetById = cardService.getById as jest.Mock;
+const mockedUpdate = cardService.update as jest.Mock;
+const mockedRemove = cardService.remove as jest.Mock;
+
+const card: Card = {
+  id: "c1",
+  title: "Revisar PR",
+  description: "Olhar os testes.",
+  position: 0,
+  priority: "MEDIUM",
+  dueDate: "2026-03-10T00:00:00.000Z",
+  listId: "l1",
+  assigneeId: null,
+  createdAt: "2026-01-01T00:00:00.000Z",
+};
+
+function setup(cardId = "c1", boardId = "b1") {
+  return renderWithProviders(
+    <CardDetailContent cardId={cardId} boardId={boardId} />
+  );
+}
+
+describe("CardDetailContent", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("mostra o skeleton enquanto carrega", () => {
+    mockedGetById.mockReturnValue(new Promise(() => {}));
+
+    setup();
+
+    expect(
+      screen.getByRole("status", { name: /carregando cartão/i })
+    ).toBeInTheDocument();
+  });
+
+  it("mostra 'não encontrado' quando o card não existe", async () => {
+    mockedGetById.mockRejectedValue(new ApiError("Card não encontrado.", 404));
+
+    setup();
+
+    expect(
+      await screen.findByText(/cartão não encontrado/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /voltar ao quadro/i })
+    ).toHaveAttribute("href", "/boards/b1");
+  });
+
+  it("preenche o formulário com os dados do card", async () => {
+    mockedGetById.mockResolvedValue(card);
+
+    setup();
+
+    expect(await screen.findByLabelText(/título/i)).toHaveValue("Revisar PR");
+    expect(screen.getByLabelText(/descrição/i)).toHaveValue(
+      "Olhar os testes."
+    );
+    expect(screen.getByLabelText(/data-limite/i)).toHaveValue("2026-03-10");
+    expect(screen.getByRole("combobox")).toHaveTextContent("Média");
+  });
+
+  it("salva as alterações com o payload correto", async () => {
+    mockedGetById.mockResolvedValue(card);
+    mockedUpdate.mockResolvedValue({ ...card, title: "Revisar PR (v2)" });
+
+    setup();
+
+    const titleInput = await screen.findByLabelText(/título/i);
+    await userEvent.clear(titleInput);
+    await userEvent.type(titleInput, "Revisar PR (v2)");
+    await userEvent.click(screen.getByRole("button", { name: /^salvar$/i }));
+
+    await waitFor(() =>
+      expect(mockedUpdate).toHaveBeenCalledWith("c1", {
+        title: "Revisar PR (v2)",
+        description: "Olhar os testes.",
+        priority: "MEDIUM",
+        dueDate: "2026-03-10T00:00:00.000Z",
+      })
+    );
+  });
+
+  it("mostra a mensagem do servidor quando falha ao salvar", async () => {
+    mockedGetById.mockResolvedValue(card);
+    mockedUpdate.mockRejectedValue(new ApiError("Título inválido.", 400));
+
+    setup();
+
+    await screen.findByLabelText(/título/i);
+    await userEvent.click(screen.getByRole("button", { name: /^salvar$/i }));
+
+    expect(await screen.findByText(/título inválido/i)).toBeInTheDocument();
+  });
+
+  it("exclui o card e redireciona para o quadro", async () => {
+    mockedGetById.mockResolvedValue(card);
+    mockedRemove.mockResolvedValue(undefined);
+
+    setup();
+
+    await screen.findByLabelText(/título/i);
+    await userEvent.click(
+      screen.getByRole("button", { name: /excluir cartão/i })
+    );
+    await userEvent.click(
+      await screen.findByRole("button", { name: /^excluir$/i })
+    );
+
+    await waitFor(() => expect(mockedRemove).toHaveBeenCalledWith("c1"));
+    expect(mockPush).toHaveBeenCalledWith("/boards/b1");
+  });
+});

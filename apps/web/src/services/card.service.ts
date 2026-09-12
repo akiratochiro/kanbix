@@ -11,12 +11,26 @@ export interface CreateCardPayload {
   dueDate?: string;
 }
 
+export interface UpdateCardPayload {
+  title?: string;
+  description?: string;
+  priority?: Card["priority"];
+  dueDate?: string | null;
+}
+
 export const cardService = {
   listByList: (listId: string) =>
     apiClient.get<Card[]>(`/lists/${listId}/cards`),
 
+  getById: (cardId: string) => apiClient.get<Card>(`/cards/${cardId}`),
+
   create: (listId: string, payload: CreateCardPayload) =>
     apiClient.post<Card>(`/lists/${listId}/cards`, payload),
+
+  update: (cardId: string, payload: UpdateCardPayload) =>
+    apiClient.patch<Card>(`/cards/${cardId}`, payload),
+
+  remove: (cardId: string) => apiClient.delete<void>(`/cards/${cardId}`),
 
   move: (cardId: string, payload: { toListId: string; toIndex: number }) =>
     apiClient.patch<Card>(`/cards/${cardId}/move`, payload),

@@ -8,6 +8,9 @@ jest.mock("@/hooks/use-cards", () => ({ useCards: () => mockUseCards() }));
 jest.mock("@/hooks/use-create-card", () => ({
   useCreateCard: () => ({ mutateAsync: jest.fn().mockResolvedValue({}) }),
 }));
+jest.mock("next/navigation", () => ({
+  useParams: () => ({ id: "b1" }),
+}));
 
 const list: List = {
   id: "l1",
