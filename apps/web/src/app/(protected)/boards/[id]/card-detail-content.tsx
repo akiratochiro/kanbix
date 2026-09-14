@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -44,6 +45,7 @@ import { useBoard } from "@/hooks/use-board";
 import { useMembers } from "@/hooks/use-members";
 import { CardChecklist } from "./card-checklist";
 import { CardLabels } from "./card-labels";
+import { useCardCloseGuard } from "./card-close-guard";
 import {
   CARD_PRIORITIES,
   cardDetailSchema,
@@ -98,6 +100,7 @@ function CardDetailForm({ card, boardId }: { card: Card; boardId: string }) {
   const updateCard = useUpdateCard(card.id);
   const toggleComplete = useUpdateCard(card.id);
   const deleteCard = useDeleteCard(card.id, card.listId);
+  const closeGuard = useCardCloseGuard();
 
   const form = useForm<CardDetailFormData>({
     resolver: zodResolver(cardDetailSchema),
@@ -110,14 +113,23 @@ function CardDetailForm({ card, boardId }: { card: Card; boardId: string }) {
     },
   });
 
+  const isDirty = form.formState.isDirty;
+  useEffect(() => {
+    closeGuard?.setDirty(isDirty);
+    return () => closeGuard?.setDirty(false);
+  }, [closeGuard, isDirty]);
+
   function onSubmit(data: CardDetailFormData) {
-    updateCard.mutate({
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      dueDate: dueDateToPayload(data.dueDate),
-      assigneeId: assigneeIdToPayload(data.assigneeId),
-    });
+    updateCard.mutate(
+      {
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        dueDate: dueDateToPayload(data.dueDate),
+        assigneeId: assigneeIdToPayload(data.assigneeId),
+      },
+      { onSuccess: () => form.reset(data) }
+    );
   }
 
   function handleToggleComplete() {
