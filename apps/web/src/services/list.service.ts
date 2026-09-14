@@ -12,4 +12,7 @@ export const listService = {
     apiClient.post<List>(`/boards/${boardId}/lists`, { name }),
 
   remove: (listId: string) => apiClient.delete<void>(`/lists/${listId}`),
+
+  move: (listId: string, toIndex: number) =>
+    apiClient.patch<List>(`/lists/${listId}/move`, { toIndex }),
 };

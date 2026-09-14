@@ -5,7 +5,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Trash2 } from "lucide-react";
+import { GripVertical, Trash2 } from "lucide-react";
 import type { List } from "@kanbix/shared-types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,15 +25,26 @@ import { useCreateCard } from "@/hooks/use-create-card";
 import { useDeleteList } from "@/hooks/use-delete-list";
 import { QuickAddForm } from "./quick-add-form";
 import { SortableCard } from "./sortable-card";
-import type { ListDropData } from "./dnd";
+import type { ListDragHandleProps, ListDropData } from "./dnd";
 
-export function ListColumn({ list }: { list: List }) {
+export function ListColumn({
+  list,
+  dragHandleProps,
+}: {
+  list: List;
+  dragHandleProps?: ListDragHandleProps;
+}) {
   const cards = useCards(list.id);
   const createCard = useCreateCard(list.id);
   const deleteList = useDeleteList(list.boardId);
 
+  // Id distinto do drag da própria lista (que usa list.id) — só a data importa
+  // pra resolveCardDrop, então o id em si pode ser qualquer string única.
   const dropData: ListDropData = { type: "list", listId: list.id };
-  const { setNodeRef } = useDroppable({ id: list.id, data: dropData });
+  const { setNodeRef } = useDroppable({
+    id: `dropzone:${list.id}`,
+    data: dropData,
+  });
 
   return (
     <div
@@ -41,7 +52,19 @@ export function ListColumn({ list }: { list: List }) {
       className="flex w-72 shrink-0 flex-col gap-2 rounded-lg bg-muted/50 p-3"
     >
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-sm font-medium">{list.name}</h2>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            ref={dragHandleProps?.setActivatorNodeRef}
+            className="touch-none text-muted-foreground hover:text-foreground"
+            aria-label={`Arrastar lista ${list.name}`}
+            {...dragHandleProps?.attributes}
+            {...dragHandleProps?.listeners}
+          >
+            <GripVertical className="size-3.5" />
+          </button>
+          <h2 className="text-sm font-medium">{list.name}</h2>
+        </div>
         <div className="flex items-center gap-1">
           {cards.isSuccess && (
             <span className="text-xs text-muted-foreground">

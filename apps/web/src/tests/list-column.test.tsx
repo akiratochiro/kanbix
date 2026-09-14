@@ -107,6 +107,16 @@ describe("ListColumn", () => {
     expect(refetch).toHaveBeenCalledTimes(1);
   });
 
+  it("renderiza o handle de arrastar a lista", () => {
+    mockUseCards.mockReturnValue(cardsLoaded([]));
+
+    render(<ListColumn list={list} />);
+
+    expect(
+      screen.getByRole("button", { name: /arrastar lista a fazer/i })
+    ).toBeInTheDocument();
+  });
+
   it("exclui a lista após confirmar", async () => {
     mockUseCards.mockReturnValue(cardsLoaded([]));
 
