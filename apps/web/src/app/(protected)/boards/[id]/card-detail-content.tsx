@@ -140,74 +140,116 @@ function CardDetailForm({ card, boardId }: { card: Card; boardId: string }) {
 
   return (
     <Form {...form}>
-      <form
-        noValidate
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4"
-      >
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleToggleComplete}
-          disabled={toggleComplete.isPending}
-          className={card.completedAt ? "border-green-600 text-green-600" : ""}
+      <div className="space-y-4">
+        <form
+          noValidate
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4"
         >
-          {card.completedAt ? (
-            <CheckCircle2 className="text-green-600" />
-          ) : (
-            <Circle />
-          )}
-          {card.completedAt ? "Concluído" : "Marcar como concluído"}
-        </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleToggleComplete}
+            disabled={toggleComplete.isPending}
+            className={card.completedAt ? "border-green-600 text-green-600" : ""}
+          >
+            {card.completedAt ? (
+              <CheckCircle2 className="text-green-600" />
+            ) : (
+              <Circle />
+            )}
+            {card.completedAt ? "Concluído" : "Marcar como concluído"}
+          </Button>
 
-        <CardLabels card={card} boardId={boardId} />
+          <CardLabels card={card} boardId={boardId} />
 
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Título</FormLabel>
-              <FormControl>
-                <Input className="text-base font-medium" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição</FormLabel>
-              <FormControl>
-                <Textarea rows={4} placeholder="Sem descrição" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="priority"
+            name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Prioridade</FormLabel>
+                <FormLabel>Título</FormLabel>
+                <FormControl>
+                  <Input className="text-base font-medium" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Descrição</FormLabel>
+                <FormControl>
+                  <Textarea rows={4} placeholder="Sem descrição" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Prioridade</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {CARD_PRIORITIES.map((priority) => (
+                        <SelectItem key={priority.value} value={priority.value}>
+                          {priority.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="dueDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data-limite</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="assigneeId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Responsável</FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger disabled={members.isPending}>
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {CARD_PRIORITIES.map((priority) => (
-                      <SelectItem key={priority.value} value={priority.value}>
-                        {priority.label}
+                    <SelectItem value={UNASSIGNED}>Sem responsável</SelectItem>
+                    {members.data?.map((member) => (
+                      <SelectItem key={member.userId} value={member.userId}>
+                        {member.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -217,83 +259,43 @@ function CardDetailForm({ card, boardId }: { card: Card; boardId: string }) {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="dueDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data-limite</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="assigneeId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Responsável</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger disabled={members.isPending}>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value={UNASSIGNED}>Sem responsável</SelectItem>
-                  {members.data?.map((member) => (
-                    <SelectItem key={member.userId} value={member.userId}>
-                      {member.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
+          {serverError && (
+            <p className="text-sm font-medium text-destructive">
+              {serverError}
+            </p>
           )}
-        />
+
+          <div className="flex items-center justify-between pt-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="ghost" className="text-destructive">
+                  Excluir cartão
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir este cartão?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Essa ação não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <Button type="submit" disabled={updateCard.isPending}>
+              {updateCard.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </div>
+        </form>
 
         <CardChecklist card={card} />
-
-        {serverError && (
-          <p className="text-sm font-medium text-destructive">
-            {serverError}
-          </p>
-        )}
-
-        <div className="flex items-center justify-between pt-2">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button type="button" variant="ghost" className="text-destructive">
-                Excluir cartão
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Excluir este cartão?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Essa ação não pode ser desfeita.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>
-                  Excluir
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-
-          <Button type="submit" disabled={updateCard.isPending}>
-            {updateCard.isPending ? "Salvando..." : "Salvar"}
-          </Button>
-        </div>
-      </form>
+      </div>
     </Form>
   );
 }
