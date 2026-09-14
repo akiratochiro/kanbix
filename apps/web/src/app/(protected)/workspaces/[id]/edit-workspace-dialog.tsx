@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Pencil } from "lucide-react";
+import type { WorkspaceWithRole } from "@kanbix/shared-types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,48 +26,69 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/lib/api-client";
-import { useCreateWorkspace } from "@/hooks/use-create-workspace";
 import { workspaceFormSchema, type WorkspaceFormData } from "@/lib/workspace-schema";
+import { useUpdateWorkspace } from "@/hooks/use-update-workspace";
 
-export function CreateWorkspaceDialog({ trigger }: { trigger: ReactNode }) {
+export function EditWorkspaceDialog({
+  workspace,
+}: {
+  workspace: WorkspaceWithRole;
+}) {
   const [open, setOpen] = useState(false);
-  const createWorkspace = useCreateWorkspace();
+  const updateWorkspace = useUpdateWorkspace(workspace.id);
 
   const form = useForm<WorkspaceFormData>({
     resolver: zodResolver(workspaceFormSchema),
-    defaultValues: { name: "", description: "" },
+    defaultValues: {
+      name: workspace.name,
+      description: workspace.description ?? "",
+    },
   });
 
   function handleOpenChange(next: boolean) {
     setOpen(next);
-    if (!next) {
-      form.reset();
-      createWorkspace.reset();
+    if (next) {
+      // Mesmo motivo do EditBoardDialog: reseta com os dados atuais a cada
+      // abertura, não só no mount, senão reabrir após salvar mostraria os
+      // valores antigos "congelados" no useForm inicial.
+      form.reset({
+        name: workspace.name,
+        description: workspace.description ?? "",
+      });
+    } else {
+      updateWorkspace.reset();
     }
   }
 
   function onSubmit(data: WorkspaceFormData) {
-    createWorkspace.mutate(
+    updateWorkspace.mutate(
       { name: data.name, description: data.description || undefined },
-      { onSuccess: () => handleOpenChange(false) }
+      { onSuccess: () => setOpen(false) }
     );
   }
 
-  const serverError = createWorkspace.error
-    ? createWorkspace.error instanceof ApiError
-      ? createWorkspace.error.message
-      : "Não foi possível criar o workspace."
+  const serverError = updateWorkspace.error
+    ? updateWorkspace.error instanceof ApiError
+      ? updateWorkspace.error.message
+      : "Não foi possível salvar as alterações."
     : null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7 text-muted-foreground hover:text-foreground"
+          aria-label="Editar workspace"
+        >
+          <Pencil className="size-4" />
+        </Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Novo workspace</DialogTitle>
-          <DialogDescription>
-            Um workspace agrupa seus quadros e sua equipe.
-          </DialogDescription>
+          <DialogTitle>Editar workspace</DialogTitle>
+          <DialogDescription>Nome e descrição do workspace.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -109,8 +132,8 @@ export function CreateWorkspaceDialog({ trigger }: { trigger: ReactNode }) {
             )}
 
             <DialogFooter>
-              <Button type="submit" disabled={createWorkspace.isPending}>
-                {createWorkspace.isPending ? "Criando..." : "Criar workspace"}
+              <Button type="submit" disabled={updateWorkspace.isPending}>
+                {updateWorkspace.isPending ? "Salvando..." : "Salvar alterações"}
               </Button>
             </DialogFooter>
           </form>

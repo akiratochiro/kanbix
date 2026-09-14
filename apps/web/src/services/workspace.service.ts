@@ -15,6 +15,9 @@ export const workspaceService = {
   create: (payload: CreateWorkspacePayload) =>
     apiClient.post<Workspace>("/workspaces", payload),
 
+  update: (workspaceId: string, payload: CreateWorkspacePayload) =>
+    apiClient.patch<Workspace>(`/workspaces/${workspaceId}`, payload),
+
   remove: (workspaceId: string) =>
     apiClient.delete<void>(`/workspaces/${workspaceId}`),
 };

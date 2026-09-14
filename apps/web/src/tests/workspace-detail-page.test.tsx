@@ -202,6 +202,32 @@ describe("WorkspaceDetailPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("mostra o botão de editar para OWNER e ADMIN", () => {
+    mockUseWorkspaces.mockReturnValue(
+      workspacesLoaded([workspace({ role: "ADMIN" })])
+    );
+    mockUseBoards.mockReturnValue(boardsLoaded([]));
+
+    renderWithProviders(<WorkspaceDetailPage />);
+
+    expect(
+      screen.getByRole("button", { name: /editar workspace/i })
+    ).toBeInTheDocument();
+  });
+
+  it("não mostra o botão de editar para MEMBER", () => {
+    mockUseWorkspaces.mockReturnValue(
+      workspacesLoaded([workspace({ role: "MEMBER" })])
+    );
+    mockUseBoards.mockReturnValue(boardsLoaded([]));
+
+    renderWithProviders(<WorkspaceDetailPage />);
+
+    expect(
+      screen.queryByRole("button", { name: /editar workspace/i })
+    ).not.toBeInTheDocument();
+  });
+
   it("mostra 'não encontrado' quando o workspace não está na lista", () => {
     mockUseWorkspaces.mockReturnValue(
       workspacesLoaded([workspace({ id: "outro" })])

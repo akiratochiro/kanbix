@@ -28,6 +28,7 @@ import { useWorkspaces } from "@/hooks/use-workspaces";
 import { useBoards } from "@/hooks/use-boards";
 import { useDeleteBoard } from "@/hooks/use-delete-board";
 import { CreateBoardDialog } from "./create-board-dialog";
+import { EditWorkspaceDialog } from "./edit-workspace-dialog";
 import { MembersSection } from "./members-section";
 
 export default function WorkspaceDetailPage() {
@@ -65,7 +66,12 @@ export default function WorkspaceDetailPage() {
           </div>
         ) : (
           <div>
-            <h1 className="text-2xl font-semibold">{workspace!.name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-semibold">{workspace!.name}</h1>
+              {(workspace!.role === "ADMIN" || workspace!.role === "OWNER") && (
+                <EditWorkspaceDialog workspace={workspace!} />
+              )}
+            </div>
             {workspace!.description && (
               <p className="text-sm text-muted-foreground">
                 {workspace!.description}

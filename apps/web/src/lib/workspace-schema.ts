@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createWorkspaceSchema = z.object({
+export const workspaceFormSchema = z.object({
   name: z
     .string()
     .trim()
@@ -12,4 +12,4 @@ export const createWorkspaceSchema = z.object({
     .max(500, "A descrição deve ter no máximo 500 caracteres."),
 });
 
-export type CreateWorkspaceFormData = z.infer<typeof createWorkspaceSchema>;
+export type WorkspaceFormData = z.infer<typeof workspaceFormSchema>;
