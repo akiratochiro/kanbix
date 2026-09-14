@@ -41,6 +41,7 @@ const card = (over: Partial<Card>): Card => ({
   assigneeId: null,
   createdAt: "2026-01-01T00:00:00.000Z",
   labels: [],
+  checklist: { total: 0, completed: 0 },
   ...over,
 });
 
@@ -72,7 +73,7 @@ describe("ListColumn", () => {
     expect(screen.getByText(/sem cartões/i)).toBeInTheDocument();
   });
 
-  it("renderiza os cartões com título, prioridade, data e etiquetas", () => {
+  it("renderiza os cartões com título, prioridade, data, etiquetas e checklist", () => {
     mockUseCards.mockReturnValue(
       cardsLoaded([
         card({
@@ -88,6 +89,7 @@ describe("ListColumn", () => {
           title: "Deploy urgente",
           priority: "URGENT",
           dueDate: "2026-03-10T00:00:00.000Z",
+          checklist: { total: 3, completed: 1 },
         }),
       ])
     );
@@ -97,6 +99,7 @@ describe("ListColumn", () => {
     expect(screen.getByText("Revisar PR")).toBeInTheDocument();
     expect(screen.getByText("Deploy urgente")).toBeInTheDocument();
     expect(screen.getByText("Urgente")).toBeInTheDocument();
+    expect(screen.getByText("1/3")).toBeInTheDocument();
     expect(screen.getByText("10/03")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Bug" })).toBeInTheDocument();
     // prioridade LOW não vira badge

@@ -38,6 +38,20 @@ jest.mock("@/hooks/use-remove-card-label", () => ({
   useRemoveCardLabel: () => ({ mutate: jest.fn() }),
 }));
 
+const mockUseChecklistItems = jest.fn();
+jest.mock("@/hooks/use-checklist-items", () => ({
+  useChecklistItems: () => mockUseChecklistItems(),
+}));
+jest.mock("@/hooks/use-create-checklist-item", () => ({
+  useCreateChecklistItem: () => ({ mutateAsync: jest.fn().mockResolvedValue({}) }),
+}));
+jest.mock("@/hooks/use-update-checklist-item", () => ({
+  useUpdateChecklistItem: () => ({ mutate: jest.fn() }),
+}));
+jest.mock("@/hooks/use-delete-checklist-item", () => ({
+  useDeleteChecklistItem: () => ({ mutate: jest.fn() }),
+}));
+
 const mockedGetById = cardService.getById as jest.Mock;
 const mockedUpdate = cardService.update as jest.Mock;
 const mockedRemove = cardService.remove as jest.Mock;
@@ -54,6 +68,7 @@ const card: Card = {
   assigneeId: null,
   createdAt: "2026-01-01T00:00:00.000Z",
   labels: [],
+  checklist: { total: 0, completed: 0 },
 };
 
 function setup(cardId = "c1", boardId = "b1") {
@@ -67,6 +82,7 @@ describe("CardDetailContent", () => {
     jest.clearAllMocks();
     mockUseMembers.mockReturnValue({ data: [], isPending: false });
     mockUseLabels.mockReturnValue({ data: [], isPending: false, isSuccess: true });
+    mockUseChecklistItems.mockReturnValue({ data: [], isPending: false, isError: false });
   });
 
   it("mostra o skeleton enquanto carrega", () => {

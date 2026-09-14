@@ -45,6 +45,12 @@ export const labelKeys = {
     [...labelKeys.all, "board", boardId] as const,
 };
 
+export const checklistItemKeys = {
+  all: ["checklist-items"] as const,
+  listByCard: (cardId: string) =>
+    [...checklistItemKeys.all, "card", cardId] as const,
+};
+
 export const memberKeys = {
   all: ["members"] as const,
   listByWorkspace: (workspaceId: string) =>

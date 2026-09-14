@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { CheckSquare } from "lucide-react";
 import type { Card } from "@kanbix/shared-types";
 import { Badge } from "@/components/ui/badge";
 
@@ -50,12 +51,18 @@ export function CardBox({ card }: { card: Card }) {
         </div>
       )}
       <p className="text-sm">{card.title}</p>
-      {(badge || card.dueDate) && (
+      {(badge || card.dueDate || card.checklist.total > 0) && (
         <div className="mt-2 flex items-center gap-2">
           {badge && <Badge variant={badge.variant}>{badge.label}</Badge>}
           {card.dueDate && (
             <span className="text-xs text-muted-foreground">
               {formatDueDate(card.dueDate)}
+            </span>
+          )}
+          {card.checklist.total > 0 && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <CheckSquare className="size-3" />
+              {card.checklist.completed}/{card.checklist.total}
             </span>
           )}
         </div>

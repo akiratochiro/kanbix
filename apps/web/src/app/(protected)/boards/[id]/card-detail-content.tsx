@@ -42,6 +42,7 @@ import { useUpdateCard } from "@/hooks/use-update-card";
 import { useDeleteCard } from "@/hooks/use-delete-card";
 import { useBoard } from "@/hooks/use-board";
 import { useMembers } from "@/hooks/use-members";
+import { CardChecklist } from "./card-checklist";
 import { CardLabels } from "./card-labels";
 import {
   CARD_PRIORITIES,
@@ -256,6 +257,8 @@ function CardDetailForm({ card, boardId }: { card: Card; boardId: string }) {
             </FormItem>
           )}
         />
+
+        <CardChecklist card={card} />
 
         {serverError && (
           <p className="text-sm font-medium text-destructive">
