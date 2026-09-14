@@ -131,6 +131,52 @@ describe("DELETE /api/lists/:id", () => {
   });
 });
 
+describe("PATCH /api/lists/:id", () => {
+  it("deve renomear a list", async () => {
+    const { token, boardId } = await createUserWithBoard();
+
+    const createResponse = await request(app)
+      .post(`/api/boards/${boardId}/lists`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "A Fazer" });
+
+    const response = await request(app)
+      .patch(`/api/lists/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Em Progresso" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ id: createResponse.body.id, name: "Em Progresso" });
+  });
+
+  it("deve retornar 404 quando a list não existe", async () => {
+    const { token } = await createUserWithBoard();
+
+    const response = await request(app)
+      .patch("/api/lists/00000000-0000-0000-0000-000000000000")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Em Progresso" });
+
+    expect(response.status).toBe(404);
+  });
+
+  it("deve retornar 400 quando o nome é vazio", async () => {
+    const { token, boardId } = await createUserWithBoard();
+
+    const createResponse = await request(app)
+      .post(`/api/boards/${boardId}/lists`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "A Fazer" });
+
+    const response = await request(app)
+      .patch(`/api/lists/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "" });
+
+    expect(response.status).toBe(400);
+  });
+});
+
 describe("PATCH /api/lists/:id/move", () => {
   async function createThreeLists(token: string, boardId: string) {
     const responses = [];

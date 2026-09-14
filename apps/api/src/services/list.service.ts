@@ -27,6 +27,16 @@ export const listService = {
     return lists.map(toDTO);
   },
 
+  async updateList(listId: string, userId: string, name: string): Promise<List> {
+    const list = await listRepository.findById(listId);
+    if (!list) throw new ListNotFoundError();
+
+    await assertBoardMembership(list.boardId, userId);
+
+    const updated = await listRepository.update(listId, name);
+    return toDTO(updated);
+  },
+
   async deleteList(listId: string, userId: string): Promise<void> {
     const list = await listRepository.findById(listId);
     if (!list) throw new ListNotFoundError();

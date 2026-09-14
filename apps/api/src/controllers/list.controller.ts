@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { listService } from "../services/list.service";
-import type { CreateListInput, MoveListInput } from "../schemas/list.schema";
+import type { CreateListInput, MoveListInput, UpdateListInput } from "../schemas/list.schema";
 
 export const listController = {
   async create(
@@ -20,6 +20,19 @@ export const listController = {
     try {
       const lists = await listService.getListsByBoardId(req.params.id, req.userId!);
       res.status(200).json(lists);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async update(
+    req: Request<{ id: string }, unknown, UpdateListInput>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const list = await listService.updateList(req.params.id, req.userId!, req.body.name);
+      res.status(200).json(list);
     } catch (error) {
       next(error);
     }

@@ -52,6 +52,10 @@ export const listRepository = {
     });
   },
 
+  async update(id: string, name: string): Promise<PrismaList> {
+    return prisma.list.update({ where: { id }, data: { name } });
+  },
+
   async delete(id: string): Promise<void> {
     await prisma.list.delete({ where: { id } });
   },

@@ -82,6 +82,29 @@ describe("listService", () => {
     });
   });
 
+  describe("updateList", () => {
+    it("deve renomear a list quando ela existe e o usuário tem acesso", async () => {
+      mockedListRepository.findById.mockResolvedValue(fakeList);
+      mockedListRepository.update.mockResolvedValue({ ...fakeList, name: "Em Progresso" });
+
+      const result = await listService.updateList("list-uuid", "user-uuid", "Em Progresso");
+
+      expect(mockedAssertBoardMembership).toHaveBeenCalledWith("board-uuid", "user-uuid");
+      expect(mockedListRepository.update).toHaveBeenCalledWith("list-uuid", "Em Progresso");
+      expect(result.name).toBe("Em Progresso");
+    });
+
+    it("deve lançar ListNotFoundError quando a list não existe", async () => {
+      mockedListRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        listService.updateList("list-uuid", "user-uuid", "Em Progresso")
+      ).rejects.toThrow(ListNotFoundError);
+      expect(mockedAssertBoardMembership).not.toHaveBeenCalled();
+      expect(mockedListRepository.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe("moveList", () => {
     it("deve reordenar a list dentro do board", async () => {
       mockedListRepository.findById.mockResolvedValue(fakeList);
