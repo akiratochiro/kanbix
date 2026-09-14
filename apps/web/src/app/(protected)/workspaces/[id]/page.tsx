@@ -42,7 +42,7 @@ export default function WorkspaceDetailPage() {
   const boards = useBoards(workspaceId);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 p-8">
+    <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 p-8">
       <div>
         <Button variant="ghost" size="sm" asChild className="mb-2 -ml-2">
           <Link href="/workspaces">
@@ -105,7 +105,7 @@ export default function WorkspaceDetailPage() {
           ) : boards.data.length === 0 ? (
             <BoardsEmpty workspaceId={workspace!.id} />
           ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {boards.data.map((board) => (
                 <li key={board.id}>
                   <Link
@@ -223,7 +223,7 @@ function DeleteBoardButton({
 function BoardsSkeleton() {
   return (
     <ul
-      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
       role="status"
       aria-label="Carregando quadros"
     >

@@ -25,7 +25,7 @@ export default function BoardDashboardPage() {
   const members = useMembers(board.data?.workspaceId ?? "");
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 p-8">
+    <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 p-8">
       <div>
         <Button variant="ghost" size="sm" asChild className="mb-2 -ml-2">
           <Link href={`/boards/${boardId}`}>

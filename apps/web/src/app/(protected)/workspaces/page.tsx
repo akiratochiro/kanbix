@@ -42,7 +42,7 @@ export default function WorkspacesPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 p-8">
+    <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 p-8">
       <header className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Workspaces</h1>
@@ -66,7 +66,7 @@ export default function WorkspacesPage() {
         ) : workspaces.length === 0 ? (
           <WorkspacesEmpty />
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2">
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {workspaces.map((workspace) => (
               <li key={workspace.id}>
                 <Link
@@ -106,7 +106,7 @@ export default function WorkspacesPage() {
 function WorkspacesSkeleton() {
   return (
     <ul
-      className="grid gap-4 sm:grid-cols-2"
+      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
       role="status"
       aria-label="Carregando workspaces"
     >
