@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { boardService } from "../services/board.service";
-import type { CreateBoardInput } from "../schemas/board.schema";
+import type { CreateBoardInput, UpdateBoardInput } from "../schemas/board.schema";
 
 export const boardController = {
   async create(
@@ -40,6 +40,19 @@ export const boardController = {
   ): Promise<void> {
     try {
       const board = await boardService.getBoardById(req.params.id, req.userId!);
+      res.status(200).json(board);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async update(
+    req: Request<{ id: string }, unknown, UpdateBoardInput>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> {
+    try {
+      const board = await boardService.updateBoard(req.params.id, req.userId!, req.body);
       res.status(200).json(board);
     } catch (error) {
       next(error);

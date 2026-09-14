@@ -108,6 +108,90 @@ describe("GET /api/workspaces/:id/boards", () => {
   });
 });
 
+describe("PATCH /api/boards/:id", () => {
+  it("deve atualizar nome e cor quando o usuário é o criador", async () => {
+    const { token, workspaceId } = await createUserWithWorkspace();
+
+    const createResponse = await request(app)
+      .post(`/api/workspaces/${workspaceId}/boards`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Board Original" });
+
+    const response = await request(app)
+      .patch(`/api/boards/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Board Renomeado", color: "#10B981" });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      id: createResponse.body.id,
+      name: "Board Renomeado",
+      color: "#10B981",
+    });
+  });
+
+  it("deve retornar 403 quando não é criador nem ADMIN/OWNER", async () => {
+    const { token, workspaceId } = await createUserWithWorkspace();
+
+    const createResponse = await request(app)
+      .post(`/api/workspaces/${workspaceId}/boards`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Board do criador" });
+
+    await request(app).post("/api/users").send({
+      name: "Membro Comum",
+      email: "membro@example.com",
+      password: "senha12345",
+    });
+    const loginMember = await request(app).post("/api/login").send({
+      email: "membro@example.com",
+      password: "senha12345",
+    });
+
+    await prisma.workspaceMember.create({
+      data: {
+        userId: loginMember.body.user.id,
+        workspaceId,
+        role: "MEMBER",
+      },
+    });
+
+    const response = await request(app)
+      .patch(`/api/boards/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${loginMember.body.token}`)
+      .send({ name: "Nome Indevido" });
+
+    expect(response.status).toBe(403);
+  });
+
+  it("deve retornar 400 quando a cor não está em formato hexadecimal válido", async () => {
+    const { token, workspaceId } = await createUserWithWorkspace();
+
+    const createResponse = await request(app)
+      .post(`/api/workspaces/${workspaceId}/boards`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Board Original" });
+
+    const response = await request(app)
+      .patch(`/api/boards/${createResponse.body.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ color: "azul" });
+
+    expect(response.status).toBe(400);
+  });
+
+  it("deve retornar 404 quando o board não existe", async () => {
+    const { token } = await createUserWithWorkspace();
+
+    const response = await request(app)
+      .patch("/api/boards/00000000-0000-0000-0000-000000000000")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Não importa" });
+
+    expect(response.status).toBe(404);
+  });
+});
+
 describe("DELETE /api/boards/:id", () => {
   it("deve excluir o board quando o usuário é o criador", async () => {
     const { token, workspaceId } = await createUserWithWorkspace();

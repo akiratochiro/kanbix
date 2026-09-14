@@ -1,7 +1,6 @@
 import { boardRepository } from "../repositories/board.repository";
-import { workspaceRepository } from "../repositories/workspace.repository";
-import { assertBoardMembership } from "../utils/board-access";
-import { BoardNotFoundError, InsufficientPermissionError } from "../utils/errors";
+import { assertBoardEditPermission, assertBoardMembership } from "../utils/board-access";
+import { BoardNotFoundError } from "../utils/errors";
 import type { Board } from "@kanbix/shared-types";
 
 interface CreateBoardInput {
@@ -10,6 +9,12 @@ interface CreateBoardInput {
   color?: string;
   workspaceId: string;
   createdById: string;
+}
+
+interface UpdateBoardInput {
+  name?: string;
+  description?: string;
+  color?: string;
 }
 
 function toDTO(board: {
@@ -57,6 +62,19 @@ export const boardService = {
     return toDTO(board);
   },
 
+  async updateBoard(boardId: string, userId: string, data: UpdateBoardInput): Promise<Board> {
+    const board = await boardRepository.findById(boardId);
+
+    if (!board) {
+      throw new BoardNotFoundError();
+    }
+
+    await assertBoardEditPermission(board, userId);
+
+    const updated = await boardRepository.update(boardId, data);
+    return toDTO(updated);
+  },
+
   async deleteBoard(boardId: string, userId: string): Promise<void> {
     const board = await boardRepository.findById(boardId);
 
@@ -64,21 +82,7 @@ export const boardService = {
       throw new BoardNotFoundError();
     }
 
-    const isCreator = board.createdById === userId;
-
-    if (!isCreator) {
-      const membership = await workspaceRepository.findMembership(
-        userId,
-        board.workspaceId
-      );
-
-      const hasElevatedRole =
-        membership?.role === "ADMIN" || membership?.role === "OWNER";
-
-      if (!hasElevatedRole) {
-        throw new InsufficientPermissionError();
-      }
-    }
+    await assertBoardEditPermission(board, userId);
 
     await boardRepository.delete(boardId);
   },

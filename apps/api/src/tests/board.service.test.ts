@@ -76,6 +76,78 @@ import { BoardNotFoundError, InsufficientPermissionError } from "../utils/errors
 jest.mock("../repositories/workspace.repository");
 const mockedWorkspaceRepository = workspaceRepository as jest.Mocked<typeof workspaceRepository>;
 
+describe("boardService.updateBoard", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("deve atualizar o board quando o usuário é o criador", async () => {
+    mockedBoardRepository.findById.mockResolvedValue({
+      id: "board-uuid",
+      name: "Board",
+      description: null,
+      color: "#3B82F6",
+      workspaceId: "workspace-uuid",
+      createdById: "user-uuid",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    mockedBoardRepository.update.mockResolvedValue({
+      id: "board-uuid",
+      name: "Board Renomeado",
+      description: null,
+      color: "#3B82F6",
+      workspaceId: "workspace-uuid",
+      createdById: "user-uuid",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const result = await boardService.updateBoard("board-uuid", "user-uuid", {
+      name: "Board Renomeado",
+    });
+
+    expect(mockedBoardRepository.update).toHaveBeenCalledWith("board-uuid", {
+      name: "Board Renomeado",
+    });
+    expect(mockedWorkspaceRepository.findMembership).not.toHaveBeenCalled();
+    expect(result.name).toBe("Board Renomeado");
+  });
+
+  it("deve lançar InsufficientPermissionError quando não é criador nem tem papel elevado", async () => {
+    mockedBoardRepository.findById.mockResolvedValue({
+      id: "board-uuid",
+      name: "Board",
+      description: null,
+      color: "#3B82F6",
+      workspaceId: "workspace-uuid",
+      createdById: "outro-user-uuid",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    mockedWorkspaceRepository.findMembership.mockResolvedValue({
+      id: "membership-uuid",
+      role: "MEMBER",
+      createdAt: new Date(),
+      userId: "user-uuid",
+      workspaceId: "workspace-uuid",
+    });
+
+    await expect(
+      boardService.updateBoard("board-uuid", "user-uuid", { name: "Novo Nome" })
+    ).rejects.toThrow(InsufficientPermissionError);
+    expect(mockedBoardRepository.update).not.toHaveBeenCalled();
+  });
+
+  it("deve lançar BoardNotFoundError quando o board não existe", async () => {
+    mockedBoardRepository.findById.mockResolvedValue(null);
+
+    await expect(
+      boardService.updateBoard("board-uuid", "user-uuid", { name: "Novo Nome" })
+    ).rejects.toThrow(BoardNotFoundError);
+  });
+});
+
 describe("boardService.deleteBoard", () => {
   beforeEach(() => {
     jest.clearAllMocks();
