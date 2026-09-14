@@ -34,4 +34,22 @@ export const listService = {
     await assertBoardMembership(list.boardId, userId);
     await listRepository.delete(listId);
   },
+
+  async moveList(listId: string, userId: string, toIndex: number): Promise<List> {
+    const list = await listRepository.findById(listId);
+    if (!list) throw new ListNotFoundError();
+
+    await assertBoardMembership(list.boardId, userId);
+
+    const count = await listRepository.countByBoardId(list.boardId);
+    const newPosition = Math.max(0, Math.min(toIndex, count - 1));
+
+    const moved = await listRepository.reorder({
+      listId,
+      boardId: list.boardId,
+      oldPosition: list.position,
+      newPosition,
+    });
+    return toDTO(moved);
+  },
 };

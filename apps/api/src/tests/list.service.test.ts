@@ -81,4 +81,44 @@ describe("listService", () => {
       expect(mockedAssertBoardMembership).not.toHaveBeenCalled();
     });
   });
+
+  describe("moveList", () => {
+    it("deve reordenar a list dentro do board", async () => {
+      mockedListRepository.findById.mockResolvedValue(fakeList);
+      mockedListRepository.countByBoardId.mockResolvedValue(3);
+      mockedListRepository.reorder.mockResolvedValue({ ...fakeList, position: 2 });
+
+      const result = await listService.moveList("list-uuid", "user-uuid", 2);
+
+      expect(mockedAssertBoardMembership).toHaveBeenCalledWith("board-uuid", "user-uuid");
+      expect(mockedListRepository.reorder).toHaveBeenCalledWith({
+        listId: "list-uuid",
+        boardId: "board-uuid",
+        oldPosition: 0,
+        newPosition: 2,
+      });
+      expect(result.position).toBe(2);
+    });
+
+    it("deve limitar o toIndex ao intervalo válido do board", async () => {
+      mockedListRepository.findById.mockResolvedValue(fakeList);
+      mockedListRepository.countByBoardId.mockResolvedValue(3);
+      mockedListRepository.reorder.mockResolvedValue({ ...fakeList, position: 2 });
+
+      await listService.moveList("list-uuid", "user-uuid", 99);
+
+      expect(mockedListRepository.reorder).toHaveBeenCalledWith(
+        expect.objectContaining({ newPosition: 2 })
+      );
+    });
+
+    it("deve lançar ListNotFoundError quando a list não existe", async () => {
+      mockedListRepository.findById.mockResolvedValue(null);
+
+      await expect(listService.moveList("list-uuid", "user-uuid", 1)).rejects.toThrow(
+        ListNotFoundError
+      );
+      expect(mockedAssertBoardMembership).not.toHaveBeenCalled();
+    });
+  });
 });

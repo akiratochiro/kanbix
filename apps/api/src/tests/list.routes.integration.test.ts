@@ -130,3 +130,64 @@ describe("DELETE /api/lists/:id", () => {
     expect(response.status).toBe(404);
   });
 });
+
+describe("PATCH /api/lists/:id/move", () => {
+  async function createThreeLists(token: string, boardId: string) {
+    const responses = [];
+    for (const name of ["A Fazer", "Em Progresso", "Feito"]) {
+      responses.push(
+        await request(app)
+          .post(`/api/boards/${boardId}/lists`)
+          .set("Authorization", `Bearer ${token}`)
+          .send({ name })
+      );
+    }
+    return responses.map((response) => response.body.id as string);
+  }
+
+  it("deve mover a list para o novo índice e reposicionar as demais", async () => {
+    const { token, boardId } = await createUserWithBoard();
+    const [firstId, secondId, thirdId] = await createThreeLists(token, boardId);
+
+    const response = await request(app)
+      .patch(`/api/lists/${firstId}/move`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ toIndex: 2 });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ id: firstId, position: 2 });
+
+    const listResponse = await request(app)
+      .get(`/api/boards/${boardId}/lists`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(listResponse.body.map((list: { id: string }) => list.id)).toEqual([
+      secondId,
+      thirdId,
+      firstId,
+    ]);
+  });
+
+  it("deve retornar 404 quando a list não existe", async () => {
+    const { token } = await createUserWithBoard();
+
+    const response = await request(app)
+      .patch("/api/lists/00000000-0000-0000-0000-000000000000/move")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ toIndex: 0 });
+
+    expect(response.status).toBe(404);
+  });
+
+  it("deve retornar 400 quando toIndex é inválido", async () => {
+    const { token, boardId } = await createUserWithBoard();
+    const [firstId] = await createThreeLists(token, boardId);
+
+    const response = await request(app)
+      .patch(`/api/lists/${firstId}/move`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ toIndex: -1 });
+
+    expect(response.status).toBe(400);
+  });
+});

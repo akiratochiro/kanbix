@@ -20,6 +20,38 @@ export const listRepository = {
     return prisma.list.findMany({ where: { boardId }, orderBy: { position: "asc" } });
   },
 
+  async countByBoardId(boardId: string): Promise<number> {
+    return prisma.list.count({ where: { boardId } });
+  },
+
+  async reorder(params: {
+    listId: string;
+    boardId: string;
+    oldPosition: number;
+    newPosition: number;
+  }): Promise<PrismaList> {
+    const { listId, boardId, oldPosition, newPosition } = params;
+
+    return prisma.$transaction(async (tx) => {
+      if (newPosition < oldPosition) {
+        await tx.list.updateMany({
+          where: { boardId, position: { gte: newPosition, lt: oldPosition } },
+          data: { position: { increment: 1 } },
+        });
+      } else if (newPosition > oldPosition) {
+        await tx.list.updateMany({
+          where: { boardId, position: { gt: oldPosition, lte: newPosition } },
+          data: { position: { decrement: 1 } },
+        });
+      }
+
+      return tx.list.update({
+        where: { id: listId },
+        data: { position: newPosition },
+      });
+    });
+  },
+
   async delete(id: string): Promise<void> {
     await prisma.list.delete({ where: { id } });
   },
