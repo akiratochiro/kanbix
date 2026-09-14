@@ -78,8 +78,24 @@ model Board {
   createdBy   User   @relation(fields: [createdById], references: [id])
   createdById String
   lists List[]
+  labels Label[]
 
   @@map("boards")
+}
+
+model Label {
+  id        String   @id @default(uuid())
+  name      String
+  color     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId String
+
+  cards Card[] @relation("CardLabels")
+
+  @@map("labels")
 }
 
 enum CardPriority {
@@ -120,6 +136,8 @@ model Card {
 
   assignee   User?   @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
   assigneeId String?
+
+  labels Label[] @relation("CardLabels")
 
   @@map("cards")
 }

@@ -69,6 +69,12 @@ export class CardNotFoundError extends AppError {
   }
 }
 
+export class LabelNotFoundError extends AppError {
+  constructor() {
+    super("Etiqueta não encontrada.", 404);
+  }
+}
+
 export class MemberAlreadyExistsError extends AppError {
   constructor() {
     super("Este usuário já é membro do workspace.", 409);

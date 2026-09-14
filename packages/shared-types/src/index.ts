@@ -44,6 +44,14 @@ export interface List {
   createdAt: string;
 }
 
+export interface Label {
+  id: string;
+  name: string;
+  color: string;
+  boardId: string;
+  createdAt: string;
+}
+
 export interface BoardDashboard {
   totalCards: number;
   completedCards: number;
