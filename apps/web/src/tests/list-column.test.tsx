@@ -17,6 +17,10 @@ jest.mock("@/hooks/use-delete-list", () => ({
   useDeleteList: () => ({ mutate: mockDeleteListMutate, isPending: false }),
 }));
 
+jest.mock("@/hooks/use-update-list", () => ({
+  useUpdateList: () => ({ mutate: jest.fn() }),
+}));
+
 const list: List = {
   id: "l1",
   name: "A fazer",

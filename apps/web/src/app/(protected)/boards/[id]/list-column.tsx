@@ -23,6 +23,7 @@ import {
 import { useCards } from "@/hooks/use-cards";
 import { useCreateCard } from "@/hooks/use-create-card";
 import { useDeleteList } from "@/hooks/use-delete-list";
+import { ListTitle } from "./list-title";
 import { QuickAddForm } from "./quick-add-form";
 import { SortableCard } from "./sortable-card";
 import type { ListDragHandleProps, ListDropData } from "./dnd";
@@ -52,20 +53,22 @@ export function ListColumn({
       className="flex w-72 shrink-0 flex-col gap-2 rounded-lg bg-muted/50 p-3"
     >
       <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-1">
+        <div className="flex min-w-0 flex-1 items-center gap-1">
           <button
             type="button"
             ref={dragHandleProps?.setActivatorNodeRef}
-            className="touch-none text-muted-foreground hover:text-foreground"
+            className="shrink-0 touch-none text-muted-foreground hover:text-foreground"
             aria-label={`Arrastar lista ${list.name}`}
             {...dragHandleProps?.attributes}
             {...dragHandleProps?.listeners}
           >
             <GripVertical className="size-3.5" />
           </button>
-          <h2 className="text-sm font-medium">{list.name}</h2>
+          <h2 className="min-w-0 flex-1">
+            <ListTitle listId={list.id} boardId={list.boardId} name={list.name} />
+          </h2>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           {cards.isSuccess && (
             <span className="text-xs text-muted-foreground">
               {cards.data.length}

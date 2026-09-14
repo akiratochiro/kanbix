@@ -15,4 +15,7 @@ export const listService = {
 
   move: (listId: string, toIndex: number) =>
     apiClient.patch<List>(`/lists/${listId}/move`, { toIndex }),
+
+  update: (listId: string, name: string) =>
+    apiClient.patch<List>(`/lists/${listId}`, { name }),
 };
