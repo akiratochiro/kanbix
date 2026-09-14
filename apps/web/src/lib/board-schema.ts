@@ -9,7 +9,7 @@ export const BOARD_COLORS = [
   { value: "#64748B", label: "Cinza" },
 ] as const;
 
-export const createBoardSchema = z.object({
+export const boardFormSchema = z.object({
   name: z
     .string()
     .trim()
@@ -24,4 +24,4 @@ export const createBoardSchema = z.object({
     .regex(/^#[0-9A-Fa-f]{6}$/, "Cor inválida."),
 });
 
-export type CreateBoardFormData = z.infer<typeof createBoardSchema>;
+export type BoardFormData = z.infer<typeof boardFormSchema>;

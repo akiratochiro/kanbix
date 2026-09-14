@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBoard } from "@/hooks/use-board";
 import { useLists } from "@/hooks/use-lists";
 import { BoardColumns } from "./board-columns";
+import { EditBoardDialog } from "./edit-board-dialog";
 
 export default function BoardPage() {
   const { id: boardId } = useParams<{ id: string }>();
@@ -57,6 +58,7 @@ export default function BoardPage() {
               aria-hidden
             />
             <h1 className="text-2xl font-semibold">{board.data.name}</h1>
+            <EditBoardDialog board={board.data} />
           </div>
         )}
       </div>

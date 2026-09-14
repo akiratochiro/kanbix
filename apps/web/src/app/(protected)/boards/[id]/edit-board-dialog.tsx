@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Pencil } from "lucide-react";
+import type { Board } from "@kanbix/shared-types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,66 +27,71 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ApiError } from "@/lib/api-client";
-import { useCreateBoard } from "@/hooks/use-create-board";
-import {
-  BOARD_COLORS,
-  boardFormSchema,
-  type BoardFormData,
-} from "@/lib/board-schema";
+import { BOARD_COLORS, boardFormSchema, type BoardFormData } from "@/lib/board-schema";
+import { useUpdateBoard } from "@/hooks/use-update-board";
 
-export function CreateBoardDialog({
-  workspaceId,
-  trigger,
-}: {
-  workspaceId: string;
-  trigger: ReactNode;
-}) {
+export function EditBoardDialog({ board }: { board: Board }) {
   const [open, setOpen] = useState(false);
-  const createBoard = useCreateBoard(workspaceId);
+  const updateBoard = useUpdateBoard(board.id, board.workspaceId);
 
   const form = useForm<BoardFormData>({
     resolver: zodResolver(boardFormSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      color: BOARD_COLORS[0].value,
+      name: board.name,
+      description: board.description ?? "",
+      color: board.color,
     },
   });
 
   function handleOpenChange(next: boolean) {
     setOpen(next);
-    if (!next) {
-      form.reset();
-      createBoard.reset();
+    if (next) {
+      // Reseta com os dados atuais do board a cada abertura — não com o
+      // useForm's defaultValues "congelado" do primeiro mount, que ficaria
+      // desatualizado após uma edição bem-sucedida anterior.
+      form.reset({
+        name: board.name,
+        description: board.description ?? "",
+        color: board.color,
+      });
+    } else {
+      updateBoard.reset();
     }
   }
 
   function onSubmit(data: BoardFormData) {
-    createBoard.mutate(
+    updateBoard.mutate(
       {
         name: data.name,
         description: data.description || undefined,
         color: data.color,
       },
-      { onSuccess: () => handleOpenChange(false) }
+      { onSuccess: () => setOpen(false) }
     );
   }
 
-  const serverError = createBoard.error
-    ? createBoard.error instanceof ApiError
-      ? createBoard.error.message
-      : "Não foi possível criar o quadro."
+  const serverError = updateBoard.error
+    ? updateBoard.error instanceof ApiError
+      ? updateBoard.error.message
+      : "Não foi possível salvar as alterações."
     : null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7 text-muted-foreground hover:text-foreground"
+          aria-label="Editar quadro"
+        >
+          <Pencil className="size-4" />
+        </Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Novo quadro</DialogTitle>
-          <DialogDescription>
-            Um quadro organiza tarefas em listas.
-          </DialogDescription>
+          <DialogTitle>Editar quadro</DialogTitle>
+          <DialogDescription>Nome, descrição e cor do quadro.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -161,8 +168,8 @@ export function CreateBoardDialog({
             )}
 
             <DialogFooter>
-              <Button type="submit" disabled={createBoard.isPending}>
-                {createBoard.isPending ? "Criando..." : "Criar quadro"}
+              <Button type="submit" disabled={updateBoard.isPending}>
+                {updateBoard.isPending ? "Salvando..." : "Salvar alterações"}
               </Button>
             </DialogFooter>
           </form>

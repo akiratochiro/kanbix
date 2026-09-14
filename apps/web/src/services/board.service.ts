@@ -19,6 +19,9 @@ export const boardService = {
   create: (workspaceId: string, payload: CreateBoardPayload) =>
     apiClient.post<Board>(`/workspaces/${workspaceId}/boards`, payload),
 
+  update: (boardId: string, payload: CreateBoardPayload) =>
+    apiClient.patch<Board>(`/boards/${boardId}`, payload),
+
   remove: (boardId: string) => apiClient.delete<void>(`/boards/${boardId}`),
 
   getDashboard: (boardId: string) =>
