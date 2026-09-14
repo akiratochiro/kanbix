@@ -25,6 +25,11 @@ export const moveCardSchema = z.object({
   toIndex: z.number().int().min(0),
 });
 
+export const addCardLabelSchema = z.object({
+  labelId: z.string().uuid(),
+});
+
 export type CreateCardInput = z.infer<typeof createCardSchema>;
 export type UpdateCardInput = z.infer<typeof updateCardSchema>;
 export type MoveCardInput = z.infer<typeof moveCardSchema>;
+export type AddCardLabelInput = z.infer<typeof addCardLabelSchema>;

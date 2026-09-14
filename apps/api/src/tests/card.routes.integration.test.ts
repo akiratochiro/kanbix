@@ -4,6 +4,7 @@ import { prisma } from "../config/prisma";
 
 afterEach(async () => {
   await prisma.card.deleteMany();
+  await prisma.label.deleteMany();
   await prisma.list.deleteMany();
   await prisma.board.deleteMany();
   await prisma.workspaceMember.deleteMany();
@@ -42,7 +43,11 @@ async function createUserWithList() {
     .set("Authorization", `Bearer ${token}`)
     .send({ name: "A Fazer" });
 
-  return { token, listId: listResponse.body.id as string };
+  return {
+    token,
+    listId: listResponse.body.id as string,
+    boardId: boardResponse.body.id as string,
+  };
 }
 
 describe("POST /api/lists/:id/cards", () => {
@@ -309,5 +314,101 @@ describe("DELETE /api/cards/:id", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(204);
+  });
+});
+
+async function createCardInList(token: string, listId: string, title: string) {
+  const response = await request(app)
+    .post(`/api/lists/${listId}/cards`)
+    .set("Authorization", `Bearer ${token}`)
+    .send({ title });
+  return response.body.id as string;
+}
+
+async function createLabel(token: string, boardId: string, name: string) {
+  const response = await request(app)
+    .post(`/api/boards/${boardId}/labels`)
+    .set("Authorization", `Bearer ${token}`)
+    .send({ name, color: "#EF4444" });
+  return response.body.id as string;
+}
+
+describe("POST /api/cards/:id/labels", () => {
+  it("deve anexar a label ao card", async () => {
+    const { token, listId, boardId } = await createUserWithList();
+    const card = await createCardInList(token, listId, "Minha Tarefa");
+    const labelId = await createLabel(token, boardId, "Bug");
+
+    const response = await request(app)
+      .post(`/api/cards/${card}/labels`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ labelId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.labels).toMatchObject([{ id: labelId, name: "Bug" }]);
+  });
+
+  it("anexar a mesma label duas vezes não duplica", async () => {
+    const { token, listId, boardId } = await createUserWithList();
+    const card = await createCardInList(token, listId, "Minha Tarefa");
+    const labelId = await createLabel(token, boardId, "Bug");
+
+    await request(app)
+      .post(`/api/cards/${card}/labels`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ labelId });
+    const response = await request(app)
+      .post(`/api/cards/${card}/labels`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ labelId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.labels).toHaveLength(1);
+  });
+
+  it("deve retornar 404 quando a label é de outro board", async () => {
+    const { token, listId } = await createUserWithList();
+    const card = await createCardInList(token, listId, "Minha Tarefa");
+
+    const { boardId: outroBoardId } = await createUserWithList();
+    const labelDeOutroBoard = await createLabel(token, outroBoardId, "Bug");
+
+    const response = await request(app)
+      .post(`/api/cards/${card}/labels`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ labelId: labelDeOutroBoard });
+
+    expect(response.status).toBe(404);
+  });
+
+  it("deve retornar 404 quando o card não existe", async () => {
+    const { token, boardId } = await createUserWithList();
+    const labelId = await createLabel(token, boardId, "Bug");
+
+    const response = await request(app)
+      .post("/api/cards/00000000-0000-0000-0000-000000000000/labels")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ labelId });
+
+    expect(response.status).toBe(404);
+  });
+});
+
+describe("DELETE /api/cards/:id/labels/:labelId", () => {
+  it("deve remover a label do card", async () => {
+    const { token, listId, boardId } = await createUserWithList();
+    const card = await createCardInList(token, listId, "Minha Tarefa");
+    const labelId = await createLabel(token, boardId, "Bug");
+    await request(app)
+      .post(`/api/cards/${card}/labels`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ labelId });
+
+    const response = await request(app)
+      .delete(`/api/cards/${card}/labels/${labelId}`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.labels).toEqual([]);
   });
 });

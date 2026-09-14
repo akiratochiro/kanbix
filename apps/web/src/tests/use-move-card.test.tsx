@@ -23,6 +23,7 @@ const card = (id: string, listId: string, position: number): Card => ({
   listId,
   assigneeId: null,
   createdAt: "2026-01-01T00:00:00.000Z",
+  labels: [],
 });
 
 function setup(seed: (qc: QueryClient) => void) {

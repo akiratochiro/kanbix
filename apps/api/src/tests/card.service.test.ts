@@ -3,7 +3,7 @@ import { cardRepository } from "../repositories/card.repository";
 import { listRepository } from "../repositories/list.repository";
 import { assertBoardMembership } from "../utils/board-access";
 import { CardNotFoundError, ListNotFoundError } from "../utils/errors";
-import type { Card as PrismaCard } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 
 jest.mock("../repositories/card.repository");
@@ -35,7 +35,8 @@ const fakeCard = {
   assigneeId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
-} satisfies PrismaCard;
+  labels: [],
+} satisfies Prisma.CardGetPayload<{ include: { labels: true } }>;
 
 describe("cardService", () => {
   beforeEach(() => {

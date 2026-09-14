@@ -1,5 +1,4 @@
 import { prisma } from "../config/prisma";
-import type { Card as PrismaCard } from "@prisma/client";
 
 export interface CreateCardData {
   title: string;
@@ -22,17 +21,26 @@ export interface UpdateCardData {
 }
 
 export const cardRepository = {
-  async create(data: CreateCardData): Promise<PrismaCard> {
+  // Sem anotação de retorno explícita nos métodos que fazem `include`: o
+  // Prisma infere o tipo certo (Card + labels) a partir da própria query.
+  async create(data: CreateCardData) {
     const count = await prisma.card.count({ where: { listId: data.listId } });
-    return prisma.card.create({ data: { ...data, position: count } });
+    return prisma.card.create({
+      data: { ...data, position: count },
+      include: { labels: true },
+    });
   },
 
-  async findById(id: string): Promise<PrismaCard | null> {
-    return prisma.card.findUnique({ where: { id } });
+  async findById(id: string) {
+    return prisma.card.findUnique({ where: { id }, include: { labels: true } });
   },
 
-  async findManyByListId(listId: string): Promise<PrismaCard[]> {
-    return prisma.card.findMany({ where: { listId }, orderBy: { position: "asc" } });
+  async findManyByListId(listId: string) {
+    return prisma.card.findMany({
+      where: { listId },
+      orderBy: { position: "asc" },
+      include: { labels: true },
+    });
   },
 
   async countByListId(listId: string): Promise<number> {
@@ -45,7 +53,7 @@ export const cardRepository = {
     targetListId: string;
     oldPosition: number;
     newPosition: number;
-  }): Promise<PrismaCard> {
+  }) {
     const { cardId, sourceListId, targetListId, oldPosition, newPosition } =
       params;
 
@@ -84,15 +92,32 @@ export const cardRepository = {
       return tx.card.update({
         where: { id: cardId },
         data: { listId: targetListId, position: newPosition },
+        include: { labels: true },
       });
     });
   },
 
-  async update(id: string, data: UpdateCardData): Promise<PrismaCard> {
-    return prisma.card.update({ where: { id }, data });
+  async update(id: string, data: UpdateCardData) {
+    return prisma.card.update({ where: { id }, data, include: { labels: true } });
   },
 
   async delete(id: string): Promise<void> {
     await prisma.card.delete({ where: { id } });
+  },
+
+  async addLabel(cardId: string, labelId: string) {
+    return prisma.card.update({
+      where: { id: cardId },
+      data: { labels: { connect: { id: labelId } } },
+      include: { labels: true },
+    });
+  },
+
+  async removeLabel(cardId: string, labelId: string) {
+    return prisma.card.update({
+      where: { id: cardId },
+      data: { labels: { disconnect: { id: labelId } } },
+      include: { labels: true },
+    });
   },
 };

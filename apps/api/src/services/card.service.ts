@@ -1,7 +1,9 @@
 import { cardRepository } from "../repositories/card.repository";
 import { listRepository } from "../repositories/list.repository";
+import { labelRepository } from "../repositories/label.repository";
 import { assertBoardMembership } from "../utils/board-access";
-import { CardNotFoundError, ListNotFoundError } from "../utils/errors";
+import { CardNotFoundError, LabelNotFoundError, ListNotFoundError } from "../utils/errors";
+import { toLabelDTO } from "./label.service";
 import type { Card } from "@kanbix/shared-types";
 
 interface CreateCardInput {
@@ -25,6 +27,7 @@ interface UpdateCardInput {
 function toDTO(card: {
   id: string; title: string; description: string | null; position: number;
   priority: string; dueDate: Date | null; completedAt: Date | null; listId: string; assigneeId: string | null; createdAt: Date;
+  labels: { id: string; name: string; color: string; boardId: string; createdAt: Date }[];
 }): Card {
   return {
     id: card.id,
@@ -37,6 +40,7 @@ function toDTO(card: {
     listId: card.listId,
     assigneeId: card.assigneeId,
     createdAt: card.createdAt.toISOString(),
+    labels: card.labels.map(toLabelDTO),
   };
 }
 
@@ -145,5 +149,32 @@ export const cardService = {
     await assertBoardMembership(list.boardId, userId);
 
     await cardRepository.delete(cardId);
+  },
+
+  async addLabelToCard(cardId: string, labelId: string, userId: string): Promise<Card> {
+    const card = await cardRepository.findById(cardId);
+    if (!card) throw new CardNotFoundError();
+
+    const list = await getListOrThrow(card.listId);
+    await assertBoardMembership(list.boardId, userId);
+
+    const label = await labelRepository.findById(labelId);
+    // Uma label de outro board não é válida aqui — mesmo erro de "não
+    // encontrada" que ela teria fora do escopo desse board.
+    if (!label || label.boardId !== list.boardId) throw new LabelNotFoundError();
+
+    const updated = await cardRepository.addLabel(cardId, labelId);
+    return toDTO(updated);
+  },
+
+  async removeLabelFromCard(cardId: string, labelId: string, userId: string): Promise<Card> {
+    const card = await cardRepository.findById(cardId);
+    if (!card) throw new CardNotFoundError();
+
+    const list = await getListOrThrow(card.listId);
+    await assertBoardMembership(list.boardId, userId);
+
+    const updated = await cardRepository.removeLabel(cardId, labelId);
+    return toDTO(updated);
   },
 };

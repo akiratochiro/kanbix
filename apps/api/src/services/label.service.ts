@@ -3,7 +3,7 @@ import { assertBoardMembership } from "../utils/board-access";
 import { LabelNotFoundError } from "../utils/errors";
 import type { Label } from "@kanbix/shared-types";
 
-function toDTO(label: {
+export function toLabelDTO(label: {
   id: string;
   name: string;
   color: string;
@@ -27,13 +27,13 @@ export const labelService = {
   ): Promise<Label> {
     await assertBoardMembership(boardId, userId);
     const label = await labelRepository.create({ ...data, boardId });
-    return toDTO(label);
+    return toLabelDTO(label);
   },
 
   async getLabelsByBoardId(boardId: string, userId: string): Promise<Label[]> {
     await assertBoardMembership(boardId, userId);
     const labels = await labelRepository.findManyByBoardId(boardId);
-    return labels.map(toDTO);
+    return labels.map(toLabelDTO);
   },
 
   async updateLabel(
@@ -47,7 +47,7 @@ export const labelService = {
     await assertBoardMembership(label.boardId, userId);
 
     const updated = await labelRepository.update(labelId, data);
-    return toDTO(updated);
+    return toLabelDTO(updated);
   },
 
   async deleteLabel(labelId: string, userId: string): Promise<void> {

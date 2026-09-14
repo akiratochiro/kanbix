@@ -72,4 +72,5 @@ export interface Card {
   listId: string;
   assigneeId: string | null;
   createdAt: string;
+  labels: Label[];
 }

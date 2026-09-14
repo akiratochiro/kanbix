@@ -2,6 +2,7 @@ import { Router } from "express";
 import { cardController } from "../controllers/card.controller";
 import { validate } from "../middlewares/validate";
 import {
+  addCardLabelSchema,
   createCardSchema,
   moveCardSchema,
   updateCardSchema,
@@ -16,3 +17,10 @@ cardRoutes.get("/cards/:id", authenticate, cardController.getById);
 cardRoutes.patch("/cards/:id/move", authenticate, validate(moveCardSchema), cardController.move);
 cardRoutes.patch("/cards/:id", authenticate, validate(updateCardSchema), cardController.update);
 cardRoutes.delete("/cards/:id", authenticate, cardController.delete);
+cardRoutes.post(
+  "/cards/:id/labels",
+  authenticate,
+  validate(addCardLabelSchema),
+  cardController.addLabel
+);
+cardRoutes.delete("/cards/:id/labels/:labelId", authenticate, cardController.removeLabel);

@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { cardService } from "../services/card.service";
 import type {
+  AddCardLabelInput,
   CreateCardInput,
   MoveCardInput,
   UpdateCardInput,
@@ -68,6 +69,40 @@ export const cardController = {
     try {
       await cardService.deleteCard(req.params.id, req.userId!);
       res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async addLabel(
+    req: Request<{ id: string }, unknown, AddCardLabelInput>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const card = await cardService.addLabelToCard(
+        req.params.id,
+        req.body.labelId,
+        req.userId!
+      );
+      res.status(200).json(card);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async removeLabel(
+    req: Request<{ id: string; labelId: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const card = await cardService.removeLabelFromCard(
+        req.params.id,
+        req.params.labelId,
+        req.userId!
+      );
+      res.status(200).json(card);
     } catch (error) {
       next(error);
     }
