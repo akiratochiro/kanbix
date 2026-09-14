@@ -138,6 +138,21 @@ model Card {
   assigneeId String?
 
   labels Label[] @relation("CardLabels")
+  checklistItems ChecklistItem[]
 
   @@map("cards")
+}
+
+model ChecklistItem {
+  id        String   @id @default(uuid())
+  text      String
+  completed Boolean  @default(false)
+  position  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  card   Card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId String
+
+  @@map("checklist_items")
 }

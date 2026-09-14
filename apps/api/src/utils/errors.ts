@@ -75,6 +75,12 @@ export class LabelNotFoundError extends AppError {
   }
 }
 
+export class ChecklistItemNotFoundError extends AppError {
+  constructor() {
+    super("Item do checklist não encontrado.", 404);
+  }
+}
+
 export class MemberAlreadyExistsError extends AppError {
   constructor() {
     super("Este usuário já é membro do workspace.", 409);

@@ -52,6 +52,15 @@ export interface Label {
   createdAt: string;
 }
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+  position: number;
+  cardId: string;
+  createdAt: string;
+}
+
 export interface BoardDashboard {
   totalCards: number;
   completedCards: number;
@@ -73,4 +82,5 @@ export interface Card {
   assigneeId: string | null;
   createdAt: string;
   labels: Label[];
+  checklist: { total: number; completed: number };
 }

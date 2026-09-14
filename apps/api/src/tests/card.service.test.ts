@@ -36,7 +36,10 @@ const fakeCard = {
   createdAt: new Date(),
   updatedAt: new Date(),
   labels: [],
-} satisfies Prisma.CardGetPayload<{ include: { labels: true } }>;
+  checklistItems: [],
+} satisfies Prisma.CardGetPayload<{
+  include: { labels: true; checklistItems: { select: { completed: true } } };
+}>;
 
 describe("cardService", () => {
   beforeEach(() => {

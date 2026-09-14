@@ -28,6 +28,7 @@ function toDTO(card: {
   id: string; title: string; description: string | null; position: number;
   priority: string; dueDate: Date | null; completedAt: Date | null; listId: string; assigneeId: string | null; createdAt: Date;
   labels: { id: string; name: string; color: string; boardId: string; createdAt: Date }[];
+  checklistItems: { completed: boolean }[];
 }): Card {
   return {
     id: card.id,
@@ -41,6 +42,10 @@ function toDTO(card: {
     assigneeId: card.assigneeId,
     createdAt: card.createdAt.toISOString(),
     labels: card.labels.map(toLabelDTO),
+    checklist: {
+      total: card.checklistItems.length,
+      completed: card.checklistItems.filter((item) => item.completed).length,
+    },
   };
 }
 

@@ -22,24 +22,30 @@ export interface UpdateCardData {
 
 export const cardRepository = {
   // Sem anotação de retorno explícita nos métodos que fazem `include`: o
-  // Prisma infere o tipo certo (Card + labels) a partir da própria query.
+  // Prisma infere o tipo certo (Card + labels + checklistItems) a partir
+  // da própria query. checklistItems só traz `completed` — o texto dos
+  // itens não é necessário aqui, card.service.ts só usa isso pra montar
+  // o resumo {total, completed} do card.
   async create(data: CreateCardData) {
     const count = await prisma.card.count({ where: { listId: data.listId } });
     return prisma.card.create({
       data: { ...data, position: count },
-      include: { labels: true },
+      include: { labels: true, checklistItems: { select: { completed: true } } },
     });
   },
 
   async findById(id: string) {
-    return prisma.card.findUnique({ where: { id }, include: { labels: true } });
+    return prisma.card.findUnique({
+      where: { id },
+      include: { labels: true, checklistItems: { select: { completed: true } } },
+    });
   },
 
   async findManyByListId(listId: string) {
     return prisma.card.findMany({
       where: { listId },
       orderBy: { position: "asc" },
-      include: { labels: true },
+      include: { labels: true, checklistItems: { select: { completed: true } } },
     });
   },
 
@@ -92,13 +98,17 @@ export const cardRepository = {
       return tx.card.update({
         where: { id: cardId },
         data: { listId: targetListId, position: newPosition },
-        include: { labels: true },
+        include: { labels: true, checklistItems: { select: { completed: true } } },
       });
     });
   },
 
   async update(id: string, data: UpdateCardData) {
-    return prisma.card.update({ where: { id }, data, include: { labels: true } });
+    return prisma.card.update({
+      where: { id },
+      data,
+      include: { labels: true, checklistItems: { select: { completed: true } } },
+    });
   },
 
   async delete(id: string): Promise<void> {
@@ -109,7 +119,7 @@ export const cardRepository = {
     return prisma.card.update({
       where: { id: cardId },
       data: { labels: { connect: { id: labelId } } },
-      include: { labels: true },
+      include: { labels: true, checklistItems: { select: { completed: true } } },
     });
   },
 
@@ -117,7 +127,7 @@ export const cardRepository = {
     return prisma.card.update({
       where: { id: cardId },
       data: { labels: { disconnect: { id: labelId } } },
-      include: { labels: true },
+      include: { labels: true, checklistItems: { select: { completed: true } } },
     });
   },
 };

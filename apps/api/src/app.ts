@@ -9,6 +9,7 @@ import { listRoutes } from "./routes/list.routes";
 import { memberRoutes } from "./routes/member.routes";
 import { dashboardRoutes } from "./routes/dashboard.routes";
 import { labelRoutes } from "./routes/label.routes";
+import { checklistItemRoutes } from "./routes/checklist-item.routes";
 
 export const app = express();
 
@@ -33,5 +34,6 @@ app.use("/api", cardRoutes);
 app.use("/api", memberRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api", labelRoutes);
+app.use("/api", checklistItemRoutes);
 
 app.use(errorHandler);
