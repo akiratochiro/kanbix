@@ -39,6 +39,12 @@ export const cardKeys = {
   detail: (cardId: string) => [...cardKeys.all, cardId] as const,
 };
 
+export const labelKeys = {
+  all: ["labels"] as const,
+  listByBoard: (boardId: string) =>
+    [...labelKeys.all, "board", boardId] as const,
+};
+
 export const memberKeys = {
   all: ["members"] as const,
   listByWorkspace: (workspaceId: string) =>

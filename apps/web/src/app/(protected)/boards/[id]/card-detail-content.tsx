@@ -42,6 +42,7 @@ import { useUpdateCard } from "@/hooks/use-update-card";
 import { useDeleteCard } from "@/hooks/use-delete-card";
 import { useBoard } from "@/hooks/use-board";
 import { useMembers } from "@/hooks/use-members";
+import { CardLabels } from "./card-labels";
 import {
   CARD_PRIORITIES,
   cardDetailSchema,
@@ -158,6 +159,8 @@ function CardDetailForm({ card, boardId }: { card: Card; boardId: string }) {
           )}
           {card.completedAt ? "Concluído" : "Marcar como concluído"}
         </Button>
+
+        <CardLabels card={card} boardId={boardId} />
 
         <FormField
           control={form.control}

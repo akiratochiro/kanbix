@@ -36,4 +36,10 @@ export const cardService = {
 
   move: (cardId: string, payload: { toListId: string; toIndex: number }) =>
     apiClient.patch<Card>(`/cards/${cardId}/move`, payload),
+
+  addLabel: (cardId: string, labelId: string) =>
+    apiClient.post<Card>(`/cards/${cardId}/labels`, { labelId }),
+
+  removeLabel: (cardId: string, labelId: string) =>
+    apiClient.delete<Card>(`/cards/${cardId}/labels/${labelId}`),
 };

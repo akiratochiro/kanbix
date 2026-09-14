@@ -36,6 +36,19 @@ export function CardBox({ card }: { card: Card }) {
       href={`/boards/${boardId}/cards/${card.id}`}
       className="block rounded-md border bg-background p-3 text-left shadow-sm transition hover:border-ring"
     >
+      {card.labels.length > 0 && (
+        <div className="mb-1.5 flex flex-wrap gap-1">
+          {card.labels.map((label) => (
+            <span
+              key={label.id}
+              role="img"
+              aria-label={label.name}
+              className="h-1.5 w-6 rounded-full"
+              style={{ backgroundColor: label.color }}
+            />
+          ))}
+        </div>
+      )}
       <p className="text-sm">{card.title}</p>
       {(badge || card.dueDate) && (
         <div className="mt-2 flex items-center gap-2">

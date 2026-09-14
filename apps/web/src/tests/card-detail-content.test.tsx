@@ -24,6 +24,20 @@ jest.mock("@/hooks/use-members", () => ({
   useMembers: () => mockUseMembers(),
 }));
 
+const mockUseLabels = jest.fn();
+jest.mock("@/hooks/use-labels", () => ({
+  useLabels: () => mockUseLabels(),
+}));
+jest.mock("@/hooks/use-create-label", () => ({
+  useCreateLabel: () => ({ mutate: jest.fn(), isPending: false }),
+}));
+jest.mock("@/hooks/use-add-card-label", () => ({
+  useAddCardLabel: () => ({ mutate: jest.fn() }),
+}));
+jest.mock("@/hooks/use-remove-card-label", () => ({
+  useRemoveCardLabel: () => ({ mutate: jest.fn() }),
+}));
+
 const mockedGetById = cardService.getById as jest.Mock;
 const mockedUpdate = cardService.update as jest.Mock;
 const mockedRemove = cardService.remove as jest.Mock;
@@ -52,6 +66,7 @@ describe("CardDetailContent", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMembers.mockReturnValue({ data: [], isPending: false });
+    mockUseLabels.mockReturnValue({ data: [], isPending: false, isSuccess: true });
   });
 
   it("mostra o skeleton enquanto carrega", () => {

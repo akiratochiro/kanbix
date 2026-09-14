@@ -72,10 +72,17 @@ describe("ListColumn", () => {
     expect(screen.getByText(/sem cartões/i)).toBeInTheDocument();
   });
 
-  it("renderiza os cartões com título, prioridade e data", () => {
+  it("renderiza os cartões com título, prioridade, data e etiquetas", () => {
     mockUseCards.mockReturnValue(
       cardsLoaded([
-        card({ id: "c1", title: "Revisar PR", priority: "LOW" }),
+        card({
+          id: "c1",
+          title: "Revisar PR",
+          priority: "LOW",
+          labels: [
+            { id: "lb1", name: "Bug", color: "#EF4444", boardId: "b1", createdAt: "2026-01-01T00:00:00.000Z" },
+          ],
+        }),
         card({
           id: "c2",
           title: "Deploy urgente",
@@ -91,6 +98,7 @@ describe("ListColumn", () => {
     expect(screen.getByText("Deploy urgente")).toBeInTheDocument();
     expect(screen.getByText("Urgente")).toBeInTheDocument();
     expect(screen.getByText("10/03")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Bug" })).toBeInTheDocument();
     // prioridade LOW não vira badge
     expect(screen.queryByText("Baixa")).not.toBeInTheDocument();
   });
