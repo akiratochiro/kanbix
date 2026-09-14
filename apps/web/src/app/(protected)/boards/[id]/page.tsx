@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBoard } from "@/hooks/use-board";
 import { useLists } from "@/hooks/use-lists";
 import { BoardColumns } from "./board-columns";
+import { BoardFiltersBar } from "./board-filters-bar";
+import { BoardFiltersProvider } from "./board-filters-context";
 import { EditBoardDialog } from "./edit-board-dialog";
 
 export default function BoardPage() {
@@ -73,7 +75,13 @@ export default function BoardPage() {
               isRetrying={lists.isFetching}
             />
           ) : (
-            <BoardColumns boardId={boardId} lists={lists.data} />
+            <BoardFiltersProvider>
+              <BoardFiltersBar
+                boardId={boardId}
+                workspaceId={board.data.workspaceId}
+              />
+              <BoardColumns boardId={boardId} lists={lists.data} />
+            </BoardFiltersProvider>
           )}
         </section>
       )}

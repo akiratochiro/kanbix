@@ -23,6 +23,8 @@ import {
 import { useCards } from "@/hooks/use-cards";
 import { useCreateCard } from "@/hooks/use-create-card";
 import { useDeleteList } from "@/hooks/use-delete-list";
+import { useBoardFilters } from "./board-filters-context";
+import { hasActiveFilters } from "./board-filters";
 import { ListTitle } from "./list-title";
 import { QuickAddForm } from "./quick-add-form";
 import { SortableCard } from "./sortable-card";
@@ -38,6 +40,8 @@ export function ListColumn({
   const cards = useCards(list.id);
   const createCard = useCreateCard(list.id);
   const deleteList = useDeleteList(list.boardId);
+  const { filters, matches } = useBoardFilters();
+  const filtering = hasActiveFilters(filters);
 
   // Id distinto do drag da própria lista (que usa list.id) — só a data importa
   // pra resolveCardDrop, então o id em si pode ser qualquer string única.
@@ -71,7 +75,9 @@ export function ListColumn({
         <div className="flex shrink-0 items-center gap-1">
           {cards.isSuccess && (
             <span className="text-xs text-muted-foreground">
-              {cards.data.length}
+              {filtering
+                ? `${cards.data.filter(matches).length}/${cards.data.length}`
+                : cards.data.length}
             </span>
           )}
           <AlertDialog>
@@ -139,6 +145,7 @@ export function ListColumn({
                 card={card}
                 listId={list.id}
                 index={index}
+                dimmed={filtering && !matches(card)}
               />
             ))}
           </ul>

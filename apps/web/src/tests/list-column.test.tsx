@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Card, List } from "@kanbix/shared-types";
 import { ListColumn } from "@/app/(protected)/boards/[id]/list-column";
+import { EMPTY_FILTERS } from "@/app/(protected)/boards/[id]/board-filters";
 
 const mockUseCards = jest.fn();
 jest.mock("@/hooks/use-cards", () => ({ useCards: () => mockUseCards() }));
@@ -19,6 +20,11 @@ jest.mock("@/hooks/use-delete-list", () => ({
 
 jest.mock("@/hooks/use-update-list", () => ({
   useUpdateList: () => ({ mutate: jest.fn() }),
+}));
+
+const mockUseBoardFilters = jest.fn();
+jest.mock("@/app/(protected)/boards/[id]/board-filters-context", () => ({
+  useBoardFilters: () => mockUseBoardFilters(),
 }));
 
 const list: List = {
@@ -55,6 +61,14 @@ const cardsLoaded = (data: Card[]) => ({
 });
 
 describe("ListColumn", () => {
+  beforeEach(() => {
+    mockUseBoardFilters.mockReturnValue({
+      filters: EMPTY_FILTERS,
+      setFilters: jest.fn(),
+      matches: () => true,
+    });
+  });
+
   it("mostra o skeleton dos cartões enquanto carrega", () => {
     mockUseCards.mockReturnValue({ isPending: true, isError: false });
 
@@ -146,5 +160,42 @@ describe("ListColumn", () => {
     );
 
     expect(mockDeleteListMutate).toHaveBeenCalledWith("l1");
+  });
+
+  it("com filtro ativo, mostra 'correspondem/total' no cabeçalho", () => {
+    mockUseCards.mockReturnValue(
+      cardsLoaded([card({ id: "c1" }), card({ id: "c2" })])
+    );
+    mockUseBoardFilters.mockReturnValue({
+      filters: { ...EMPTY_FILTERS, overdueOnly: true },
+      setFilters: jest.fn(),
+      matches: (c: Card) => c.id === "c1",
+    });
+
+    render(<ListColumn list={list} />);
+
+    expect(screen.getByText("1/2")).toBeInTheDocument();
+  });
+
+  it("com filtro ativo, apaga (opacity) o cartão que não corresponde", () => {
+    mockUseCards.mockReturnValue(
+      cardsLoaded([
+        card({ id: "c1", title: "Bate no filtro" }),
+        card({ id: "c2", title: "Não bate" }),
+      ])
+    );
+    mockUseBoardFilters.mockReturnValue({
+      filters: { ...EMPTY_FILTERS, overdueOnly: true },
+      setFilters: jest.fn(),
+      matches: (c: Card) => c.id === "c1",
+    });
+
+    render(<ListColumn list={list} />);
+
+    const matching = screen.getByText("Bate no filtro").closest("li");
+    const nonMatching = screen.getByText("Não bate").closest("li");
+
+    expect(matching).not.toHaveClass("opacity-40");
+    expect(nonMatching).toHaveClass("opacity-40");
   });
 });

@@ -11,10 +11,12 @@ export function SortableCard({
   card,
   listId,
   index,
+  dimmed,
 }: {
   card: Card;
   listId: string;
   index: number;
+  dimmed?: boolean;
 }) {
   const data: CardDragData = { type: "card", card, listId, index };
 
@@ -31,7 +33,7 @@ export function SortableCard({
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={cn("touch-none", isDragging && "opacity-40")}
+      className={cn("touch-none", (isDragging || dimmed) && "opacity-40")}
       {...attributes}
       {...listeners}
     >
